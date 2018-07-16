@@ -1,0 +1,23 @@
+service: api-aws
+
+provider:
+  name: aws
+  runtime: go1.x
+  stage: dev
+  region: eu-central-1
+
+package:
+ exclude:
+   - ./**
+ include:
+   - ../bin/api-aws/**
+
+functions:
+  meta:
+    handler: bin/api-aws/meta
+    description: API meta information
+    memorySize: 128
+    events:
+      - http:
+          path: meta
+          method: get
