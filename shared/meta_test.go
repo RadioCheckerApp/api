@@ -1,13 +1,13 @@
 package shared
 
 import (
+	"fmt"
 	"testing"
 	"time"
-	"fmt"
 )
 
 func TestAPIMetadata(t *testing.T) {
-	expected := fmt.Sprintf("RadioChecker API (C) %d The RadioChecker Authors. " +
+	expected := fmt.Sprintf("RadioChecker API (C) %d The RadioChecker Authors. "+
 		"All rights reserved.", time.Now().Year())
 	got := APIMetadata()
 	if got != expected {
