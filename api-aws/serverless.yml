@@ -1,10 +1,22 @@
 service: api-aws
 
+custom:
+  tableName: 'stations-table-${self:provider.stage}'
+
 provider:
   name: aws
   runtime: go1.x
   stage: dev
   region: eu-central-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource:
+        - {"Fn::GetAtt": ["StationsDDBTable", "Arn"]}
+  environment:
+    USERS_TABLE: ${self:custom.tableName}
 
 package:
  exclude:
@@ -21,3 +33,29 @@ functions:
       - http:
           path: meta
           method: get
+  stations:
+    handler: bin/api-aws/stations
+    description: provides available radio stations
+    memorySize: 128
+    events:
+      - http:
+          path: stations
+          method: get
+
+resources:
+  Resources:
+    StationsDDBTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: stationId
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: stationId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.tableName}

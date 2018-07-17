@@ -1,0 +1,33 @@
+package main
+
+import (
+	"errors"
+	"github.com/RadioCheckerApp/api/datalayer"
+	"github.com/RadioCheckerApp/api/shared"
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"os"
+)
+
+func Handler() (events.APIGatewayProxyResponse, error) {
+	sess, _ := session.NewSession(&aws.Config{
+		Region: aws.String("eu-central-1"),
+	})
+	svc := dynamodb.New(sess)
+	jsonStr, err := shared.Stations(datalayer.NewDDBStationDAO(svc, os.Getenv("USERS_TABLE")))
+	if err != nil {
+		return events.APIGatewayProxyResponse{}, errors.New("internal server error")
+	}
+	return events.APIGatewayProxyResponse{
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		Body:       jsonStr,
+		StatusCode: 200,
+	}, nil
+}
+
+func main() {
+	lambda.Start(Handler)
+}
