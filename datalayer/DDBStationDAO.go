@@ -18,13 +18,13 @@ func NewDDBStationDAO(dynamodb *dynamodb.DynamoDB, tableName string) *DDBStation
 }
 
 func (dao *DDBStationDAO) GetAll() ([]model.Station, error) {
-	var stations []model.Station
+	stations := make([]model.Station, 0)
 
-	input := &dynamodb.ScanInput{
+	scanInput := &dynamodb.ScanInput{
 		TableName: aws.String(dao.tableName),
 	}
 
-	err := dao.dynamoDB.ScanPages(input, func(page *dynamodb.ScanOutput, last bool) bool {
+	err := dao.dynamoDB.ScanPages(scanInput, func(page *dynamodb.ScanOutput, last bool) bool {
 		var stats []model.Station
 		err := dynamodbattribute.UnmarshalListOfMaps(page.Items, &stats)
 		if err != nil {
@@ -33,9 +33,6 @@ func (dao *DDBStationDAO) GetAll() ([]model.Station, error) {
 		stations = append(stations, stats...)
 		return true
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return stations, nil
+	return stations, err
 }
