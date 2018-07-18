@@ -13,14 +13,17 @@ import (
 )
 
 func Handler() (events.APIGatewayProxyResponse, error) {
-	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String("eu-central-1"),
-	})
-	svc := dynamodb.New(sess)
-	jsonStr, err := shared.Stations(datalayer.NewDDBStationDAO(svc, os.Getenv("USERS_TABLE")))
+	// AWS config implicitly defined by serverless.yml
+	dbSession, _ := session.NewSession(&aws.Config{})
+
+	db := dynamodb.New(dbSession)
+	stationDAO := datalayer.NewDDBStationDAO(db, os.Getenv("USERS_TABLE"))
+
+	jsonStr, err := shared.Stations(stationDAO)
 	if err != nil {
 		return events.APIGatewayProxyResponse{}, errors.New("internal server error")
 	}
+
 	return events.APIGatewayProxyResponse{
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		Body:       jsonStr,
