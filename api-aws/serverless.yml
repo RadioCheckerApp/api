@@ -1,7 +1,8 @@
 service: api-aws
 
 custom:
-  tableName: 'stations-table-${self:provider.stage}'
+  StationsDDBTableName: 'stations-table-${self:provider.stage}'
+  TrackRecordsDDBTableName: 'trackrecords-table-${self:provider.stage}'
 
 provider:
   name: aws
@@ -15,8 +16,10 @@ provider:
         - dynamodb:Scan
       Resource:
         - {"Fn::GetAtt": ["StationsDDBTable", "Arn"]}
+        - {"Fn::GetAtt": ["TrackRecordsDDBTable", "Arn"]}
   environment:
-    USERS_TABLE: ${self:custom.tableName}
+    STATIONS_TABLE: ${self:custom.StationsDDBTableName}
+    TRACKRECORDS_TABLE: ${self:custom.TrackRecordsDDBTableName}
 
 package:
  exclude:
@@ -58,4 +61,23 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:custom.tableName}
+        TableName: ${self:custom.StationsDDBTableName}
+    TrackRecordsDDBTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: stationId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: N
+        KeySchema:
+          - AttributeName: stationId
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.TrackRecordsDDBTableName}
+
+

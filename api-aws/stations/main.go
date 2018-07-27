@@ -17,7 +17,7 @@ func Handler() (events.APIGatewayProxyResponse, error) {
 	dbSession, _ := session.NewSession(&aws.Config{})
 
 	db := dynamodb.New(dbSession)
-	stationDAO := datalayer.NewDDBStationDAO(db, os.Getenv("USERS_TABLE"))
+	stationDAO := datalayer.NewDDBStationDAO(db, os.Getenv("STATIONS_TABLE"))
 
 	jsonStr, err := shared.Stations(stationDAO)
 	if err != nil {
