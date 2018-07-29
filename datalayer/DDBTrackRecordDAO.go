@@ -6,11 +6,11 @@ import (
 )
 
 type DDBTrackRecordDAO struct {
-	dynamoDB  *DynamoDB
+	dynamoDB  DynamoDB
 	tableName string
 }
 
-func NewDDBTrackRecordDAO(dynamodb *DynamoDB, tableName string) *DDBTrackRecordDAO {
+func NewDDBTrackRecordDAO(dynamodb DynamoDB, tableName string) *DDBTrackRecordDAO {
 	return &DDBTrackRecordDAO{dynamodb, tableName}
 }
 

@@ -9,11 +9,11 @@ import (
 )
 
 type DDBStationDAO struct {
-	dynamoDB  *dynamodb.DynamoDB
+	dynamoDB  DynamoDB
 	tableName string
 }
 
-func NewDDBStationDAO(dynamodb *dynamodb.DynamoDB, tableName string) *DDBStationDAO {
+func NewDDBStationDAO(dynamodb DynamoDB, tableName string) *DDBStationDAO {
 	return &DDBStationDAO{dynamodb, tableName}
 }
 
