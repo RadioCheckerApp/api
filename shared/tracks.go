@@ -35,10 +35,12 @@ func Tracks(dao datalayer.TrackRecordDAO, pathParams, queryStringParams map[stri
 		return "", err
 	}
 
-	date, err := getDate(queryStringParams)
-	if err == nil {
-		var jsonStr []byte
-		var err error
+	if formattedDateStr, ok := queryStringParams["date"]; ok {
+		date, err := createDate(formattedDateStr)
+		if err != nil {
+			return "", err
+		}
+		jsonStr := []byte("")
 		if filter == Top {
 			jsonStr, err = json.Marshal(topTracksForDay(dao, station, date))
 		} else if filter == All {
@@ -47,18 +49,21 @@ func Tracks(dao datalayer.TrackRecordDAO, pathParams, queryStringParams map[stri
 		return string(jsonStr), err
 	}
 
-	var jsonStr []byte
+	if formattedDateStr, ok := queryStringParams["week"]; ok {
+		date, err = createFirstDateOfWeek(formattedDateStr)
+		if err != nil {
+			return "", err
+		}
+		jsonStr := []byte("")
+		if filter == Top {
+			jsonStr, err = json.Marshal(topTracksForWeek(dao, station, date))
+		} else if filter == All {
+			jsonStr, err = json.Marshal(allTracksForWeek(dao, station, date))
+		}
+		return string(jsonStr), err
+	}
 
-	date, err = getFirstDayOfWeek(queryStringParams)
-	if err != nil {
-		return "", err
-	}
-	if filter == Top {
-		jsonStr, err = json.Marshal(topTracksForWeek(dao, station, date))
-	} else if filter == All {
-		jsonStr, err = json.Marshal(allTracksForWeek(dao, station, date))
-	}
-	return string(jsonStr), err
+	return "", errors.New("invalid path/query string parameters provided")
 }
 
 func getStation(pathParams map[string]string) (string, error) {
@@ -81,26 +86,20 @@ func getFilter(queryStringParams map[string]string) (Filter, error) {
 	}
 }
 
-func getDate(queryStringParams map[string]string) (time.Time, error) {
-	dateStr, ok := queryStringParams["date"]
-	if !ok {
-		return time.Time{}, errors.New("date param not provided")
+func createDate(formattedDateStr string) (time.Time, error) {
+	date, err := time.ParseInLocation("2006-01-02", formattedDateStr, getLocation())
+	if err != nil {
+		return time.Time{}, errors.New("invalid date format provided")
 	}
-	return time.ParseInLocation("2006-01-02", dateStr, getLocation())
+	return date, err
 }
 
-func getFirstDayOfWeek(queryStringParams map[string]string) (time.Time, error) {
-	dateStr, ok := queryStringParams["week"]
-	if !ok {
-		return time.Time{}, errors.New("week param not provided")
-	}
-
-	date, err := time.ParseInLocation("2006-01-02", dateStr, getLocation())
+func createFirstDateOfWeek(date string) (time.Time, error) {
+	firstDateOfWeek, err := createDate(date)
 	if err != nil {
-		return time.Time{}, err
+		return firstDateOfWeek, err
 	}
-
-	return date.AddDate(0, 0, -normalizeWeekdayNumber(date)), nil
+	return firstDateOfWeek.AddDate(0, 0, -normalizeWeekdayNumber(firstDateOfWeek)), err
 }
 
 func getLocation() *time.Location {

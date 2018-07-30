@@ -87,6 +87,55 @@ func TestTracks(t *testing.T) {
 			"[]",
 			false,
 		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": "whatever"},
+			map[string]string{"date": "2018-07-32", "filter": "all"},
+			"[]",
+			true,
+		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": "whatever"},
+			map[string]string{"week": "2018-07-32", "filter": "all"},
+			"[]",
+			true,
+		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": "whatever"},
+			map[string]string{"date": date, "filter": "invalidFilter"},
+			"[]",
+			true,
+		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": "whatever"},
+			map[string]string{"week": date, "filter": "invalidFilter"},
+			"[]",
+			true,
+		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": "noTracksStation"},
+			map[string]string{"week": date, "filter": ""},
+			"[]",
+			false,
+		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": "whatever"},
+			map[string]string{"week": date},
+			"[]",
+			true,
+		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": "whatever"},
+			map[string]string{"filter": "all"},
+			"[]",
+			true,
+		},
 	}
 
 	for _, test := range tests {
@@ -174,6 +223,11 @@ func TestGetFilter(t *testing.T) {
 			true,
 		},
 		{
+			map[string]string{},
+			Top,
+			false,
+		},
+		{
 			map[string]string{"unknownFilterParam": "top"},
 			Top,
 			false,
@@ -193,41 +247,36 @@ func TestGetFilter(t *testing.T) {
 	}
 }
 
-func TestGetDate(t *testing.T) {
+func TestCreateDate(t *testing.T) {
 	loc, err := time.LoadLocation("Europe/Berlin")
 	if err != nil {
 		t.Fatalf("TestGetDate: unable to load location `Europe/Berlin`")
 	}
 
 	var tests = []struct {
-		input        map[string]string
+		input        string
 		expectedTime time.Time
 		expectedErr  bool
 	}{
 		{
-			map[string]string{"date": "2018-07-28"},
+			"2018-07-28",
 			time.Date(2018, 07, 28, 0, 0, 0, 0, loc),
 			false,
 		},
 		{
-			map[string]string{"date": "2018-07-32"},
+			"2018-07-32",
 			time.Time{},
 			true,
 		},
 		{
-			map[string]string{"otherParam": "2018-07-28"},
-			time.Time{},
-			true,
-		},
-		{
-			map[string]string{},
+			"",
 			time.Time{},
 			true,
 		},
 	}
 
 	for _, test := range tests {
-		result, err := getDate(test.input)
+		result, err := createDate(test.input)
 		if (err != nil) != test.expectedErr {
 			t.Errorf("getDate(%q): got (%q, %v), expected error: %v",
 				test.input, result, err, test.expectedErr)
@@ -239,46 +288,41 @@ func TestGetDate(t *testing.T) {
 	}
 }
 
-func TestGetFirstDayOfWeek(t *testing.T) {
+func TestCreateFirstDateOfWeek(t *testing.T) {
 	loc, err := time.LoadLocation("Europe/Berlin")
 	if err != nil {
 		t.Fatalf("TestGetFirstDayOfWeek: unable to load location `Europe/Berlin`")
 	}
 
 	var tests = []struct {
-		input        map[string]string
+		input        string
 		expectedTime time.Time
 		expectedErr  bool
 	}{
 		{
-			map[string]string{"week": "2018-07-28"},
+			"2018-07-28",
 			time.Date(2018, 07, 23, 0, 0, 0, 0, loc),
 			false,
 		},
 		{
-			map[string]string{"week": "2018-07-23"},
+			"2018-07-23",
 			time.Date(2018, 07, 23, 0, 0, 0, 0, loc),
 			false,
 		},
 		{
-			map[string]string{"week": "2018-07-32"},
+			"2018-07-32",
 			time.Time{},
 			true,
 		},
 		{
-			map[string]string{"otherParam": "2018-07-28"},
-			time.Time{},
-			true,
-		},
-		{
-			map[string]string{},
+			"",
 			time.Time{},
 			true,
 		},
 	}
 
 	for _, test := range tests {
-		result, err := getFirstDayOfWeek(test.input)
+		result, err := createFirstDateOfWeek(test.input)
 		if (err != nil) != test.expectedErr {
 			t.Errorf("getFirstDayOfWeek(%q): got (%q, %v), expected error: %v",
 				test.input, result, err, test.expectedErr)
