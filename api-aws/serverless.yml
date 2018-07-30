@@ -38,7 +38,7 @@ functions:
           method: get
   stations:
     handler: bin/api-aws/stations
-    description: provides available radio stations
+    description: serves available radio stations
     memorySize: 128
     events:
       - http:
@@ -68,12 +68,12 @@ resources:
         AttributeDefinitions:
           - AttributeName: stationId
             AttributeType: S
-          - AttributeName: timestamp
+          - AttributeName: airtime
             AttributeType: N
         KeySchema:
           - AttributeName: stationId
             KeyType: HASH
-          - AttributeName: timestamp
+          - AttributeName: airtime
             KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
