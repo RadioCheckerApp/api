@@ -44,6 +44,14 @@ functions:
       - http:
           path: stations
           method: get
+  tracks:
+    handler: bin/api-aws/tracks
+    description: serves tracks and track statistics
+    memorySize: 128
+    events:
+      - http:
+          path: stations/{station}/tracks
+          method: get
 
 resources:
   Resources:
