@@ -1,8 +1,9 @@
 package main
 
 import (
-	"errors"
+	"github.com/RadioCheckerApp/api/api-aws/awsutil"
 	"github.com/RadioCheckerApp/api/datalayer"
+	"github.com/RadioCheckerApp/api/model"
 	"github.com/RadioCheckerApp/api/shared"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -19,16 +20,9 @@ func Handler() (events.APIGatewayProxyResponse, error) {
 	db := dynamodb.New(dbSession)
 	stationDAO := datalayer.NewDDBStationDAO(db, os.Getenv("STATIONS_TABLE"))
 
-	jsonStr, err := shared.Stations(stationDAO)
-	if err != nil {
-		return events.APIGatewayProxyResponse{}, errors.New("internal server error")
-	}
-
-	return events.APIGatewayProxyResponse{
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		Body:       jsonStr,
-		StatusCode: 200,
-	}, nil
+	stations, err := shared.Stations(stationDAO)
+	responseMessage := model.NewAPIResponseMessage(stations, err)
+	return awsutil.CreateResponse(200, responseMessage), nil
 }
 
 func main() {

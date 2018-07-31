@@ -31,34 +31,37 @@ func (dao MockStationDAOFail) GetAll() ([]model.Station, error) {
 
 func TestStations(t *testing.T) {
 	var tests = []struct {
-		input   datalayer.StationDAO
-		jsonStr string
-		err     error
+		inputDAO         datalayer.StationDAO
+		expectedStations model.Stations
+		expectedErr      error
 	}{
 		{
 			MockStationDAOSuccess{},
-			"[{\"stationId\":\"kronehit\",\"name\":\"Kronehit\",\"description\":" +
-				"\"We are the most music\",\"active\":true},{\"stationId\":\"hitradio-oe3\"," +
-				"\"name\":\"Hitradio Ö3\",\"description\":\"\",\"active\":false}]",
+			model.Stations{
+				[]model.Station{
+					{"kronehit", "Kronehit", "We are the most music", true},
+					{"hitradio-oe3", "Hitradio Ö3", "", false},
+				},
+			},
 			nil,
 		},
 		{
 			MockStationDAOSuccessEmpty{},
-			"[]",
+			model.Stations{[]model.Station{}},
 			nil,
 		},
 		{
 			MockStationDAOFail{},
-			"[]",
-			errors.New("error"),
+			model.Stations{},
+			nil,
 		},
 	}
 
 	for _, test := range tests {
-		jsonStr, err := Stations(test.input)
-		if jsonStr != test.jsonStr || (err != err && err.Error() != test.err.Error()) {
-			t.Errorf("Stations(%s): got (%q, %q), expect (%q, %q)",
-				reflect.TypeOf(test.input).Name(), jsonStr, err, test.jsonStr, test.err)
+		stations, err := Stations(test.inputDAO)
+		if !reflect.DeepEqual(stations, test.expectedStations) || err != test.expectedErr {
+			t.Errorf("Stations(%s): got (%v, %v), expect (%v, %v)",
+				reflect.TypeOf(test.inputDAO).Name(), stations, err, test.expectedStations, test.expectedErr)
 		}
 	}
 }

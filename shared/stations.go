@@ -1,15 +1,14 @@
 package shared
 
 import (
-	"encoding/json"
 	"github.com/RadioCheckerApp/api/datalayer"
+	"github.com/RadioCheckerApp/api/model"
 )
 
-func Stations(dao datalayer.StationDAO) (string, error) {
+func Stations(dao datalayer.StationDAO) (model.Stations, error) {
 	stations, err := dao.GetAll()
 	if err != nil {
-		return "[]", err
+		return model.Stations{}, nil
 	}
-	jsonBytes, err := json.Marshal(stations)
-	return string(jsonBytes), err
+	return model.Stations{stations}, nil
 }

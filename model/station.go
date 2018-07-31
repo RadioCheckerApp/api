@@ -6,3 +6,7 @@ type Station struct {
 	Description string `json:"description"`
 	Active      bool   `json:"active"`
 }
+
+type Stations struct {
+	Stations []Station `json:"stations"`
+}
