@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"github.com/RadioCheckerApp/api/api-aws/awsutil"
 	"github.com/RadioCheckerApp/api/datalayer"
 	"github.com/RadioCheckerApp/api/model"
 	"github.com/RadioCheckerApp/api/shared"
@@ -23,19 +23,9 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	tracks, err := shared.Tracks(trackRecordsDAO, request.PathParameters,
 		request.QueryStringParameters)
 	responseMessage := model.NewAPIResponseMessage(tracks, err)
-	return createResponse(200, responseMessage), nil
+	return awsutil.CreateResponse(200, responseMessage), nil
 }
 
 func main() {
 	lambda.Start(Handler)
-}
-
-func createResponse(statusCode int, message model.APIResponseMessage) events.
-	APIGatewayProxyResponse {
-	encodedMessage, _ := json.Marshal(message)
-	return events.APIGatewayProxyResponse{
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		Body:       string(encodedMessage),
-		StatusCode: statusCode,
-	}
 }
