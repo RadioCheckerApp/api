@@ -3,7 +3,7 @@ package shared
 import (
 	"github.com/RadioCheckerApp/api/datalayer"
 	"github.com/RadioCheckerApp/api/model"
-	"strings"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -34,120 +34,171 @@ func TestTracks(t *testing.T) {
 		inputDAO         datalayer.TrackRecordDAO
 		inputPathParams  map[string]string
 		inputQueryParams map[string]string
-		expectedStr      string
+		expectedResult   interface{}
 		expectedErr      bool
 	}{
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "station-a"},
 			map[string]string{"date": date, "filter": "top"},
-			"[{\"times_played\":2,\"track\":{\"artist\":\"RHCP\",\"title\":" +
-				"\"Californication\"}},{\"times_played\":1,\"track\":{\"artist\":" +
-				"\"Jonas Blue, Jack \\u0026 Jack\",\"title\":\"Rise\"}},{\"times_played\":1," +
-				"\"track\":{\"artist\":\"I Like It\",\"title\":\"Cardi B\"}}]",
+			model.CountedTracks{
+				[]model.CountedTrack{
+					{3, model.Track{"RHCP", "Californication"}},
+					{2, model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+					{1, model.Track{"Cardi B", "I Like It"}},
+				},
+			},
 			false,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "station-a"},
 			map[string]string{"week": date, "filter": "top"},
-			"[{\"times_played\":2,\"track\":{\"artist\":\"RHCP\",\"title\":" +
-				"\"Californication\"}},{\"times_played\":1,\"track\":{\"artist\":" +
-				"\"Jonas Blue, Jack \\u0026 Jack\",\"title\":\"Rise\"}},{\"times_played\":1," +
-				"\"track\":{\"artist\":\"I Like It\",\"title\":\"Cardi B\"}}]",
+			model.CountedTracks{
+				[]model.CountedTrack{
+					{3, model.Track{"RHCP", "Californication"}},
+					{2, model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+					{1, model.Track{"Cardi B", "I Like It"}},
+				},
+			},
 			false,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "station-a"},
 			map[string]string{"date": date, "filter": "all"},
-			"[{\"artist\":\"RHCP\",\"title\":\"Californication\"},{\"artist\":\"Jonas Blue, " +
-				"Jack \\u0026 Jack\",\"title\":\"Rise\"},{\"artist\":\"I Like It\",\"title\":\"Cardi B\"}]",
+			model.Tracks{
+				[]model.Track{
+					{"RHCP", "Californication"},
+					{"Jonas Blue, Jack & Jack", "Rise"},
+					{"Cardi B", "I Like It"},
+				},
+			},
 			false,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "station-a"},
 			map[string]string{"week": date, "filter": "all"},
-			"[{\"artist\":\"RHCP\",\"title\":\"Californication\"},{\"artist\":\"Jonas Blue, " +
-				"Jack \\u0026 Jack\",\"title\":\"Rise\"},{\"artist\":\"I Like It\",\"title\":\"Cardi B\"}]",
+			model.Tracks{
+				[]model.Track{
+					{"RHCP", "Californication"},
+					{"Jonas Blue, Jack & Jack", "Rise"},
+					{"Cardi B", "I Like It"},
+				},
+			},
 			false,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "noTracksStation"},
 			map[string]string{"date": date, "filter": "top"},
-			"[]",
+			model.CountedTracks{},
 			false,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "noTracksStation"},
 			map[string]string{"date": date, "filter": "all"},
-			"[]",
+			model.Tracks{},
 			false,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "whatever"},
 			map[string]string{"date": "2018-07-32", "filter": "all"},
-			"[]",
+			nil,
 			true,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "whatever"},
 			map[string]string{"week": "2018-07-32", "filter": "all"},
-			"[]",
+			nil,
 			true,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "whatever"},
 			map[string]string{"date": date, "filter": "invalidFilter"},
-			"[]",
+			nil,
 			true,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "whatever"},
 			map[string]string{"week": date, "filter": "invalidFilter"},
-			"[]",
+			nil,
 			true,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "noTracksStation"},
 			map[string]string{"week": date, "filter": ""},
-			"[]",
+			model.CountedTracks{},
 			false,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "whatever"},
 			map[string]string{"week": date},
-			"[]",
+			nil,
 			true,
 		},
 		{
 			MockTrackRecordDAO{},
 			map[string]string{"station": "whatever"},
 			map[string]string{"filter": "all"},
-			"[]",
+			nil,
 			true,
 		},
 	}
 
 	for _, test := range tests {
-		jsonStr, err := Tracks(test.inputDAO, test.inputPathParams, test.inputQueryParams)
+		result, err := Tracks(test.inputDAO, test.inputPathParams, test.inputQueryParams)
 		if (err != nil) != test.expectedErr {
 			t.Errorf("Tracks(%q, %q, %q): got (%q, %v), expected error: %v",
-				test.inputDAO, test.inputPathParams, test.inputQueryParams, jsonStr, err, test.expectedErr)
+				test.inputDAO, test.inputPathParams, test.inputQueryParams, result, err,
+				test.expectedErr)
+			continue
 		}
-		if len(strings.Split(jsonStr, ",")) != len(strings.Split(test.expectedStr, ",")) {
-			t.Errorf("Tracks(%q, %q, %q): got (%q, %v), expected (%q, %v)",
-				test.inputDAO, test.inputPathParams, test.inputQueryParams, jsonStr, err,
-				test.expectedStr, test.expectedErr)
+
+		if reflect.TypeOf(result) != reflect.TypeOf(test.expectedResult) {
+			t.Errorf("Tracks(%q, %q, %q): got return type (%s), expected (%s)",
+				test.inputDAO, test.inputPathParams, test.inputQueryParams,
+				reflect.TypeOf(result).String(), reflect.TypeOf(test.expectedResult).String())
+			continue
+		}
+
+		if reflect.TypeOf(result) == reflect.TypeOf(model.CountedTracks{}) {
+			resultCasted, _ := result.(model.CountedTracks)
+			expectedResultCasted, _ := test.expectedResult.(model.CountedTracks)
+			for i, expectedCountedTrack := range expectedResultCasted.CountedTracks {
+				if resultCasted.CountedTracks[i] != expectedCountedTrack {
+					t.Errorf("Tracks(%q, %q, %q): got (%q), expected (%q)",
+						test.inputDAO, test.inputPathParams, test.inputQueryParams, result,
+						test.expectedResult)
+				}
+			}
+		}
+
+		if reflect.TypeOf(result) == reflect.TypeOf(model.Tracks{}) {
+			resultCasted, _ := result.(model.Tracks)
+			expectedResultCasted, _ := test.expectedResult.(model.Tracks)
+			for _, track := range expectedResultCasted.Tracks {
+				match := false
+				for _, resultTrack := range resultCasted.Tracks {
+					if resultTrack == track {
+						match = true
+						break
+					}
+				}
+				if !match {
+					t.Errorf("Tracks(%q, %q, %q): got (%q), expected (%q)",
+						test.inputDAO, test.inputPathParams, test.inputQueryParams, result,
+						test.expectedResult)
+				}
+			}
 		}
 	}
 }
@@ -397,14 +448,14 @@ func TestTopTracks(t *testing.T) {
 
 	for _, test := range tests {
 		result := topTracks(test.inputDAO, test.inputStation, test.inputStartDate, test.inputEndDate)
-		if len(result) != len(test.expectedTracks) {
+		if len(result.CountedTracks) != len(test.expectedTracks) {
 			t.Errorf("topTracks(%q, %q, %q, %q): got (%v), expected (%v)",
 				test.inputDAO, test.inputStation, test.inputStartDate, test.inputEndDate, result,
 				test.expectedTracks)
 			continue
 		}
 		for i, expectedTrack := range test.expectedTracks {
-			if result[i] != expectedTrack {
+			if result.CountedTracks[i] != expectedTrack {
 				t.Errorf("topTracks(%q, %q, %q, %q): got (%v), expected (%v)",
 					test.inputDAO, test.inputStation, test.inputStartDate, test.inputEndDate, result,
 					test.expectedTracks)
@@ -449,7 +500,7 @@ func TestAllTracks(t *testing.T) {
 	for _, test := range tests {
 		result := allTracks(test.inputDAO, test.inputStation, test.inputStartDate,
 			test.inputEndDate)
-		if len(result) != len(test.expectedTracks) {
+		if len(result.Tracks) != len(test.expectedTracks) {
 			t.Errorf("topTracks(%q, %q, %q, %q): got (%v), expected (%v)",
 				test.inputDAO, test.inputStation, test.inputStartDate, test.inputEndDate, result,
 				test.expectedTracks)
@@ -457,7 +508,7 @@ func TestAllTracks(t *testing.T) {
 		}
 		for _, expectedTrack := range test.expectedTracks {
 			match := false
-			for _, resultTrack := range result {
+			for _, resultTrack := range result.Tracks {
 				if resultTrack == expectedTrack {
 					match = true
 					break
