@@ -6,7 +6,7 @@ The RC API Services provide and maintain API endpoints used by
 RadioChecker.com apps, i.e. the web frontend. Built upon the
 [AWS Lambda](https://aws.amazon.com/lambda) stack, the API leverages a
 serverless architecture developed with the
-[Severless Framework](https://serverless.com).
+[Serverless Framework](https://serverless.com).
 
 ## Endpoints
 - `GET /meta`
