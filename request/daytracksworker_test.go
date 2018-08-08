@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/RadioCheckerApp/api/datalayer"
 	"github.com/RadioCheckerApp/api/model"
-	"github.com/RadioCheckerApp/api/shared"
 	"reflect"
 	"testing"
 	"time"
@@ -32,18 +31,18 @@ func TestNewDayTracksWorker(t *testing.T) {
 		dao         datalayer.TrackRecordDAO
 		station     string
 		date        time.Time
-		filter      shared.Filter
+		filter      Filter
 		expectedErr bool
 	}{
 		{
 			MockTrackRecordDAO{},
 			"teststation",
 			time.Now(),
-			shared.Top,
+			Top,
 			false,
 		},
-		{nil, "teststation", time.Now(), shared.All, true},
-		{MockTrackRecordDAO{}, "", time.Now(), shared.Top, true},
+		{nil, "teststation", time.Now(), All, true},
+		{MockTrackRecordDAO{}, "", time.Now(), Top, true},
 	}
 
 	for _, test := range tests {
@@ -71,19 +70,19 @@ func TestDayTracksWorker_HandleRequest_TopTracks(t *testing.T) {
 		expectedErr    bool
 	}{
 		{
-			DayTracksWorker{TracksWorker{MockTrackRecordDAO{}, "station-A"}, date, shared.Top},
+			DayTracksWorker{TracksWorker{MockTrackRecordDAO{}, "station-A"}, date, Top},
 			countedTracks,
 			false,
 		},
 		{
 			DayTracksWorker{TracksWorker{MockTrackRecordDAO{}, "notracksstation"}, date,
-				shared.Top},
+				Top},
 			model.CountedTracks{},
 			false,
 		},
 		{
 			DayTracksWorker{TracksWorker{MockTrackRecordDAODayVerifier{}, "nevermind"}, date,
-				shared.Top},
+				Top},
 			model.CountedTracks{},
 			false,
 		},
@@ -128,19 +127,19 @@ func TestDayTracksWorker_HandleRequest_AllTracks(t *testing.T) {
 		expectedErr    bool
 	}{
 		{
-			DayTracksWorker{TracksWorker{MockTrackRecordDAO{}, "station-A"}, date, shared.All},
+			DayTracksWorker{TracksWorker{MockTrackRecordDAO{}, "station-A"}, date, All},
 			tracks,
 			false,
 		},
 		{
 			DayTracksWorker{TracksWorker{MockTrackRecordDAO{}, "notracksstation"}, date,
-				shared.All},
+				All},
 			model.Tracks{},
 			false,
 		},
 		{
 			DayTracksWorker{TracksWorker{MockTrackRecordDAODayVerifier{}, "nevermind"}, date,
-				shared.All},
+				All},
 			model.Tracks{},
 			false,
 		},

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/RadioCheckerApp/api/datalayer"
 	"github.com/RadioCheckerApp/api/model"
-	"github.com/RadioCheckerApp/api/shared"
 	"reflect"
 	"testing"
 	"time"
@@ -42,18 +41,18 @@ func TestNewWeekTracksWorker(t *testing.T) {
 		dao         datalayer.TrackRecordDAO
 		station     string
 		date        time.Time
-		filter      shared.Filter
+		filter      Filter
 		expectedErr bool
 	}{
 		{
 			MockTrackRecordDAO{},
 			"teststation",
 			time.Now(),
-			shared.Top,
+			Top,
 			false,
 		},
-		{nil, "teststation", time.Now(), shared.All, true},
-		{MockTrackRecordDAO{}, "", time.Now(), shared.Top, true},
+		{nil, "teststation", time.Now(), All, true},
+		{MockTrackRecordDAO{}, "", time.Now(), Top, true},
 	}
 
 	for _, test := range tests {
@@ -81,19 +80,19 @@ func TestWeekTracksWorker_HandleRequest_TopTracks(t *testing.T) {
 		expectedErr    bool
 	}{
 		{
-			WeekTracksWorker{TracksWorker{MockTrackRecordDAO{}, "station-A"}, date, shared.Top},
+			WeekTracksWorker{TracksWorker{MockTrackRecordDAO{}, "station-A"}, date, Top},
 			countedTracks,
 			false,
 		},
 		{
 			WeekTracksWorker{TracksWorker{MockTrackRecordDAO{}, "notracksstation"}, date,
-				shared.Top},
+				Top},
 			model.CountedTracks{},
 			false,
 		},
 		{
 			WeekTracksWorker{TracksWorker{MockTrackRecordDAOWeekVerifier{}, "nevermind"}, date,
-				shared.Top},
+				Top},
 			model.CountedTracks{},
 			false,
 		},
@@ -140,19 +139,18 @@ func TestWeekTracksWorker_HandleRequest_AllTracks(t *testing.T) {
 		expectedErr    bool
 	}{
 		{
-			WeekTracksWorker{TracksWorker{MockTrackRecordDAO{}, "station-A"}, date, shared.All},
+			WeekTracksWorker{TracksWorker{MockTrackRecordDAO{}, "station-A"}, date, All},
 			tracks,
 			false,
 		},
 		{
-			WeekTracksWorker{TracksWorker{MockTrackRecordDAO{}, "notracksstation"}, date,
-				shared.All},
+			WeekTracksWorker{TracksWorker{MockTrackRecordDAO{}, "notracksstation"}, date, All},
 			model.Tracks{},
 			false,
 		},
 		{
 			WeekTracksWorker{TracksWorker{MockTrackRecordDAOWeekVerifier{}, "nevermind"}, date,
-				shared.All},
+				All},
 			model.Tracks{},
 			false,
 		},

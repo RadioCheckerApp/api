@@ -2,7 +2,6 @@ package request
 
 import (
 	"github.com/RadioCheckerApp/api/datalayer"
-	"github.com/RadioCheckerApp/api/shared"
 	"log"
 	"time"
 )
@@ -10,11 +9,11 @@ import (
 type WeekTracksWorker struct {
 	TracksWorker
 	date   time.Time
-	filter shared.Filter
+	filter Filter
 }
 
 func NewWeekTracksWorker(dao datalayer.TrackRecordDAO, station string, date time.Time,
-	filter shared.Filter) (WeekTracksWorker, error) {
+	filter Filter) (WeekTracksWorker, error) {
 	tracksWorker, err := NewTracksWorker(dao, station)
 	if err != nil {
 		return WeekTracksWorker{}, err
@@ -24,7 +23,7 @@ func NewWeekTracksWorker(dao datalayer.TrackRecordDAO, station string, date time
 
 func (worker WeekTracksWorker) HandleRequest() (interface{}, error) {
 	startDate, endDate := calculateWeekBoundaries(worker.date)
-	if worker.filter == shared.Top {
+	if worker.filter == Top {
 		return worker.TopTracks(startDate, endDate)
 	}
 	return worker.AllTracks(startDate, endDate)
