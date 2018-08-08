@@ -15,6 +15,10 @@ const (
 	Top
 )
 
+func CreateStationsWorker(dao datalayer.StationDAO) (Worker, error) {
+	return NewStationsWorker(dao)
+}
+
 func CreateTracksWorker(dao datalayer.TrackRecordDAO, pathParams,
 	queryStringParams map[string]string) (Worker, error) {
 	station, err := getStation(pathParams)
