@@ -4,9 +4,9 @@ go:
   - "1.10"
 
 before_install:
-  - go get -t ./shared
+  - go get -t ./request
   - go get -t ./api-aws/*/
 
 script:
-  - go test -race ./shared
+  - go test -race ./request
   - go test -race ./api-aws/*/
