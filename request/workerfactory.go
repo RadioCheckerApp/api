@@ -15,6 +15,10 @@ const (
 	Top
 )
 
+func CreateMetaWorker() Worker {
+	return MetaWorker{}
+}
+
 func CreateStationsWorker(dao datalayer.StationDAO) (Worker, error) {
 	return NewStationsWorker(dao)
 }
