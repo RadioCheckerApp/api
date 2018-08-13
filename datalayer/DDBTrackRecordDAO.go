@@ -28,13 +28,16 @@ func (dao *DDBTrackRecordDAO) GetTrackRecords(station string, startDate, endDate
 		TableName: aws.String(dao.tableName),
 		KeyConditionExpression: aws.String(
 			"#sid = :stationId AND airtime BETWEEN :lowerBound AND :upperBound"),
+		FilterExpression: aws.String("#t = :type"),
 		ExpressionAttributeNames: map[string]*string{
 			"#sid": aws.String("stationId"),
+			"#t":   aws.String("type"),
 		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":stationId":  {S: aws.String(station)},
 			":lowerBound": {N: aws.String(strconv.FormatInt(startDate.Unix(), 10))},
 			":upperBound": {N: aws.String(strconv.FormatInt(endDate.Unix(), 10))},
+			":type":       {S: aws.String("track")},
 		},
 	}
 

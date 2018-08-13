@@ -41,6 +41,10 @@ func (ddb MockDynamoDB) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput
 		return nil, errors.New("ExpressionAttributeNames must contain mapping `#sid`: `stationId`")
 	}
 
+	if name, ok := input.ExpressionAttributeNames["#t"]; !ok || *name != "type" {
+		return nil, errors.New("ExpressionAttributeNames must contain mapping `#t`: `type`")
+	}
+
 	if input.ExpressionAttributeValues == nil {
 		return nil, errors.New("ExpressionAttributeValues must not be nil")
 	}
@@ -57,8 +61,13 @@ func (ddb MockDynamoDB) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput
 		return nil, errors.New("ExpressionAttributeValues must contain a key `:upperBound`")
 	}
 
+	if _, ok := input.ExpressionAttributeValues[":type"]; !ok {
+		return nil, errors.New("ExpressionAttributeValues must contain a key `:type`")
+	}
+
 	stationIds := []string{"station-a", "station-b"}
 	timestamps := []string{"1532897851", "1532897892"}
+	recordType := "track"
 	artists := []string{"Mø", "Jack Ü ft. Skrillex & Diplo"}
 	titles := []string{"Final Song", "Where Are Ü Now"}
 
@@ -66,13 +75,15 @@ func (ddb MockDynamoDB) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput
 		Items: []map[string]*dynamodb.AttributeValue{
 			{
 				"stationId": &dynamodb.AttributeValue{S: &stationIds[0]},
-				"timestamp": &dynamodb.AttributeValue{N: &timestamps[0]},
+				"airtime":   &dynamodb.AttributeValue{N: &timestamps[0]},
+				"type":      &dynamodb.AttributeValue{S: &recordType},
 				"artist":    &dynamodb.AttributeValue{S: &artists[0]},
 				"title":     &dynamodb.AttributeValue{S: &titles[0]},
 			},
 			{
 				"stationId": &dynamodb.AttributeValue{S: &stationIds[1]},
-				"timestamp": &dynamodb.AttributeValue{N: &timestamps[1]},
+				"airtime":   &dynamodb.AttributeValue{N: &timestamps[1]},
+				"type":      &dynamodb.AttributeValue{S: &recordType},
 				"artist":    &dynamodb.AttributeValue{S: &artists[1]},
 				"title":     &dynamodb.AttributeValue{S: &titles[1]},
 			},
@@ -89,8 +100,9 @@ func TestDDBTrackRecordDAO_GetTrackRecordsSuccess(t *testing.T) {
 	endDate := time.Now()
 
 	expectedTrackRecords := []model.TrackRecord{
-		{"station-a", 1532897851, model.Track{"Mø", "Final Song"}},
-		{"station-b", 1532897892, model.Track{"Jack Ü ft. Skrillex & Diplo", "Where Are Ü Now"}},
+		{"station-a", 1532897851, "track", model.Track{"Mø", "Final Song"}},
+		{"station-b", 1532897892, "track", model.Track{"Jack Ü ft. Skrillex & Diplo",
+			"Where Are Ü Now"}},
 	}
 
 	trackRecords, err := trackRecordDAO.GetTrackRecords(station, startDate, endDate)

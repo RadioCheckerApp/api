@@ -22,12 +22,12 @@ func (dao MockTrackRecordDAO) GetTrackRecords(stationId string, start time.Time,
 	}
 
 	trackRecords := []model.TrackRecord{
-		{stationId, time.Now().Unix(), model.Track{"RHCP", "Californication"}},
-		{stationId, time.Now().Unix(), model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
-		{stationId, time.Now().Unix(), model.Track{"Cardi B", "I Like It"}},
-		{stationId, time.Now().Unix(), model.Track{"RHCP", "Californication"}},
-		{stationId, time.Now().Unix(), model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
-		{stationId, time.Now().Unix(), model.Track{"RHCP", "Californication"}},
+		{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Californication"}},
+		{stationId, time.Now().Unix(), "track", model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+		{stationId, time.Now().Unix(), "track", model.Track{"Cardi B", "I Like It"}},
+		{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Californication"}},
+		{stationId, time.Now().Unix(), "track", model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+		{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Californication"}},
 	}
 	return trackRecords, nil
 }
