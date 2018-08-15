@@ -3,6 +3,7 @@ service: api-aws
 custom:
   StationsDDBTableName: 'stations-table-${self:provider.stage}'
   TrackRecordsDDBTableName: 'trackrecords-table-${self:provider.stage}'
+  TrackRecordsDDBGSITypeAirtime: 'trackrecords-table-${self:provider.stage}-gsi-type-airtime'
 
 provider:
   name: aws
@@ -20,6 +21,7 @@ provider:
   environment:
     STATIONS_TABLE: ${self:custom.StationsDDBTableName}
     TRACKRECORDS_TABLE: ${self:custom.TrackRecordsDDBTableName}
+    TRACKRECORDS_TABLE_GSI_TYPE_AIRTIME: ${self:custom.TrackRecordsDDBGSITypeAirtime}
 
 package:
  exclude:
@@ -59,12 +61,10 @@ resources:
       Type: 'AWS::DynamoDB::Table'
       Properties:
         AttributeDefinitions:
-          -
-            AttributeName: stationId
+          - AttributeName: stationId
             AttributeType: S
         KeySchema:
-          -
-            AttributeName: stationId
+          - AttributeName: stationId
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
@@ -78,6 +78,8 @@ resources:
             AttributeType: S
           - AttributeName: airtime
             AttributeType: N
+          - AttributeName: type
+            AttributeType: S
         KeySchema:
           - AttributeName: stationId
             KeyType: HASH
@@ -87,5 +89,17 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:custom.TrackRecordsDDBTableName}
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:custom.TrackRecordsDDBGSITypeAirtime}
+            KeySchema:
+              - AttributeName: type
+                KeyType: HASH
+              - AttributeName: airtime
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
 
 
