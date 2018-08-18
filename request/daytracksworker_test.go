@@ -11,7 +11,12 @@ import (
 
 type MockTrackRecordDAODayVerifier struct{}
 
-func (dao MockTrackRecordDAODayVerifier) GetTrackRecords(stationId string, start,
+func (dao MockTrackRecordDAODayVerifier) GetTrackRecords(start,
+	end time.Time) ([]model.TrackRecord, error) {
+	return dao.GetTrackRecordsByStation("", start, end)
+}
+
+func (dao MockTrackRecordDAODayVerifier) GetTrackRecordsByStation(stationId string, start,
 	end time.Time) ([]model.TrackRecord, error) {
 	expectedStart := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, start.Location())
 	if !start.Equal(expectedStart) {

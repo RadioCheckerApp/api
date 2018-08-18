@@ -10,10 +10,19 @@ type CountedTrack struct {
 	Track   Track `json:"track"`
 }
 
+type MatchedTrack struct {
+	CountsByStation map[string]int `json:"plays_by_station"`
+	Track           Track          `json:"track"`
+}
+
 type Tracks struct {
 	Tracks []Track `json:"tracks"`
 }
 
 type CountedTracks struct {
 	CountedTracks []CountedTrack `json:"tracks"`
+}
+
+type MatchedTracks struct {
+	MatchedTracks []MatchedTrack `json:"tracks"`
 }

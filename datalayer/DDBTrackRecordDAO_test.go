@@ -26,7 +26,7 @@ func (ddb MockDynamoDB) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput
 	}
 
 	if input.KeyConditionExpression == nil {
-		return nil, errors.New("KeyConditionException must not be nil")
+		return nil, errors.New("KeyConditionExpression must not be nil")
 	}
 
 	if len(strings.Split(*input.KeyConditionExpression, " ")) != 9 {
@@ -37,7 +37,7 @@ func (ddb MockDynamoDB) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput
 		return nil, errors.New("ExpressionAttributeNames must not be nil")
 	}
 
-	if name, ok := input.ExpressionAttributeNames["#sid"]; !ok || *name != "stationId" {
+	if name, ok := input.ExpressionAttributeNames["#sid"]; input.IndexName == nil && (!ok || *name != "stationId") {
 		return nil, errors.New("ExpressionAttributeNames must contain mapping `#sid`: `stationId`")
 	}
 
@@ -49,7 +49,7 @@ func (ddb MockDynamoDB) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput
 		return nil, errors.New("ExpressionAttributeValues must not be nil")
 	}
 
-	if _, ok := input.ExpressionAttributeValues[":stationId"]; !ok {
+	if _, ok := input.ExpressionAttributeValues[":stationId"]; input.IndexName == nil && !ok {
 		return nil, errors.New("ExpressionAttributeValues must contain a key `:stationId`")
 	}
 
@@ -61,7 +61,7 @@ func (ddb MockDynamoDB) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput
 		return nil, errors.New("ExpressionAttributeValues must contain a key `:upperBound`")
 	}
 
-	if _, ok := input.ExpressionAttributeValues[":type"]; !ok {
+	if value, ok := input.ExpressionAttributeValues[":type"]; !ok || *value.S != "track" {
 		return nil, errors.New("ExpressionAttributeValues must contain a key `:type`")
 	}
 
@@ -94,7 +94,59 @@ func (ddb MockDynamoDB) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput
 }
 
 func TestDDBTrackRecordDAO_GetTrackRecordsSuccess(t *testing.T) {
-	trackRecordDAO := NewDDBTrackRecordDAO(MockDynamoDB{}, "testTable")
+	trackRecordDAO := NewDDBTrackRecordDAO(
+		MockDynamoDB{},
+		"testTable",
+		"trackrecords-table-dev-gsi-type-airtime")
+	startDate := time.Now().AddDate(0, 0, -1)
+	endDate := time.Now()
+
+	expectedTrackRecords := []model.TrackRecord{
+		{"station-a", 1532897851, "track", model.Track{"Mø", "Final Song"}},
+		{"station-b", 1532897892, "track", model.Track{"Jack Ü ft. Skrillex & Diplo",
+			"Where Are Ü Now"}},
+	}
+
+	trackRecords, err := trackRecordDAO.GetTrackRecords(startDate, endDate)
+
+	if err != nil {
+		t.Errorf("(%q) GetTrackRecords(%q, %q): got (%q, %v), expected (%q, nil)",
+			trackRecordDAO, startDate, endDate, trackRecords, err, expectedTrackRecords)
+		return
+	}
+
+	for i, expectedTrackRecord := range expectedTrackRecords {
+		if trackRecords[i] != expectedTrackRecord {
+			t.Errorf("(%q) GetTrackRecords(%q, %q): got (%q, %v), expected (%q, nil)",
+				trackRecordDAO, startDate, endDate, trackRecords, err, expectedTrackRecords)
+		}
+	}
+}
+
+func TestDDBTrackRecordDAO_GetTrackRecordsFail(t *testing.T) {
+	trackRecordDAO := NewDDBTrackRecordDAO(
+		MockDynamoDB{},
+		"testTable",
+		"trackrecords-table-dev-gsi-type-airtime")
+
+	var tests = []struct {
+		inputStartDate time.Time
+		inputEndDate   time.Time
+	}{
+		{time.Now(), time.Now().AddDate(0, 0, -1)},
+	}
+
+	for _, test := range tests {
+		trackRecords, err := trackRecordDAO.GetTrackRecords(test.inputStartDate, test.inputEndDate)
+		if err == nil {
+			t.Errorf("(%q) GetTrackRecords(%q, %q): got (%q, %v), expected (nil, error)",
+				trackRecordDAO, test.inputStartDate, test.inputEndDate, trackRecords, err)
+		}
+	}
+}
+
+func TestDDBTrackRecordDAO_GetTrackRecordsByStationSuccess(t *testing.T) {
+	trackRecordDAO := NewDDBTrackRecordDAO(MockDynamoDB{}, "testTable", "gsi")
 	station := "station-a"
 	startDate := time.Now().AddDate(0, 0, -1)
 	endDate := time.Now()
@@ -105,23 +157,24 @@ func TestDDBTrackRecordDAO_GetTrackRecordsSuccess(t *testing.T) {
 			"Where Are Ü Now"}},
 	}
 
-	trackRecords, err := trackRecordDAO.GetTrackRecords(station, startDate, endDate)
+	trackRecords, err := trackRecordDAO.GetTrackRecordsByStation(station, startDate, endDate)
 
 	if err != nil {
-		t.Errorf("GetTrackRecords(%q, %q, %q): got (%q, %v), expected (%q, nil)",
-			station, startDate, endDate, trackRecords, err, expectedTrackRecords)
+		t.Errorf("(%q) GetTrackRecordsByStation(%q, %q, %q): got (%q, %v), expected (%q, nil)",
+			trackRecordDAO, station, startDate, endDate, trackRecords, err, expectedTrackRecords)
+		return
 	}
 
 	for i, expectedTrackRecord := range expectedTrackRecords {
 		if trackRecords[i] != expectedTrackRecord {
-			t.Errorf("GetTrackRecords(%q, %q, %q): got (%q, %v), expected (%q, nil)",
-				station, startDate, endDate, trackRecords, err, expectedTrackRecords)
+			t.Errorf("(%q) GetTrackRecordsByStation(%q, %q, %q): got (%q, %v), expected (%q, nil)",
+				trackRecordDAO, station, startDate, endDate, trackRecords, err, expectedTrackRecords)
 		}
 	}
 }
 
-func TestDDBTrackRecordDAO_GetTrackRecordsFail(t *testing.T) {
-	trackRecordDAO := NewDDBTrackRecordDAO(MockDynamoDB{}, "testTable")
+func TestDDBTrackRecordDAO_GetTrackRecordsByStationFail(t *testing.T) {
+	trackRecordDAO := NewDDBTrackRecordDAO(MockDynamoDB{}, "testTable", "gsi")
 
 	var tests = []struct {
 		inputStation   string
@@ -132,11 +185,11 @@ func TestDDBTrackRecordDAO_GetTrackRecordsFail(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		trackRecords, err := trackRecordDAO.GetTrackRecords(test.inputStation, test.inputStartDate,
-			test.inputEndDate)
+		trackRecords, err := trackRecordDAO.GetTrackRecordsByStation(test.inputStation,
+			test.inputStartDate, test.inputEndDate)
 		if err == nil {
-			t.Errorf("GetTrackRecords(%q, %q, %q): got (%q, %v), expected (nil, error)",
-				test.inputStation, test.inputStartDate, test.inputEndDate, trackRecords, err)
+			t.Errorf("(%q) GetTrackRecordsByStation(%q, %q, %q): got (%q, %v), expected (nil, error)",
+				trackRecordDAO, test.inputStation, test.inputStartDate, test.inputEndDate, trackRecords, err)
 		}
 	}
 }

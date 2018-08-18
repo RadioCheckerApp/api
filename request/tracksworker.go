@@ -24,7 +24,7 @@ func NewTracksWorker(dao datalayer.TrackRecordDAO, station string) (TracksWorker
 }
 
 func (worker TracksWorker) TopTracks(startDate, endDate time.Time) (model.CountedTracks, error) {
-	trackRecords, err := worker.dao.GetTrackRecords(worker.station, startDate, endDate)
+	trackRecords, err := worker.dao.GetTrackRecordsByStation(worker.station, startDate, endDate)
 	if err != nil {
 		return model.CountedTracks{}, err
 	}
@@ -49,7 +49,7 @@ func (worker TracksWorker) TopTracks(startDate, endDate time.Time) (model.Counte
 }
 
 func (worker TracksWorker) AllTracks(startDate, endDate time.Time) (model.Tracks, error) {
-	trackRecords, err := worker.dao.GetTrackRecords(worker.station, startDate, endDate)
+	trackRecords, err := worker.dao.GetTrackRecordsByStation(worker.station, startDate, endDate)
 	if err != nil {
 		return model.Tracks{}, err
 	}

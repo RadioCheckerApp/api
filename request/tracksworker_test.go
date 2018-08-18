@@ -11,7 +11,11 @@ import (
 
 type MockTrackRecordDAO struct{}
 
-func (dao MockTrackRecordDAO) GetTrackRecords(stationId string, start time.Time,
+func (dao MockTrackRecordDAO) GetTrackRecords(start, end time.Time) ([]model.TrackRecord, error) {
+	return dao.GetTrackRecordsByStation("getTrackRecords", start, end)
+}
+
+func (dao MockTrackRecordDAO) GetTrackRecordsByStation(stationId string, start time.Time,
 	end time.Time) ([]model.TrackRecord, error) {
 	if stationId == "notracksstation" {
 		return []model.TrackRecord{}, nil
@@ -19,6 +23,24 @@ func (dao MockTrackRecordDAO) GetTrackRecords(stationId string, start time.Time,
 
 	if start.After(end) {
 		return []model.TrackRecord{}, errors.New("error")
+	}
+
+	if stationId == "getTrackRecords" {
+		trackRecords := []model.TrackRecord{
+			{"station-a", time.Now().Unix(), "track", model.Track{"RHCP", "Californication"}},
+			{"station-a", time.Now().Unix(), "track", model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+			{"station-a", time.Now().Unix(), "track", model.Track{"Cardi B", "I Like It"}},
+			{"station-a", time.Now().Unix(), "track", model.Track{"RHCP", "Californication"}},
+			{"station-a", time.Now().Unix(), "track", model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+			{"station-a", time.Now().Unix(), "track", model.Track{"RHCP", "Californication"}},
+			{"station-b", time.Now().Unix(), "track", model.Track{"RHCP", "Californication"}},
+			{"station-b", time.Now().Unix(), "track", model.Track{"MØ", "Final Song"}},
+			{"station-b", time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{"station-b", time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{"station-c", time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{"station-c", time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+		}
+		return trackRecords, nil
 	}
 
 	trackRecords := []model.TrackRecord{

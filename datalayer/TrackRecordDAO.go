@@ -6,5 +6,7 @@ import (
 )
 
 type TrackRecordDAO interface {
-	GetTrackRecords(station string, startDate, endDate time.Time) ([]model.TrackRecord, error)
+	GetTrackRecords(startDate, endDate time.Time) ([]model.TrackRecord, error)
+	GetTrackRecordsByStation(station string, startDate, endDate time.Time) ([]model.TrackRecord,
+		error)
 }
