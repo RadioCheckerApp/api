@@ -18,6 +18,11 @@ provider:
       Resource:
         - {"Fn::GetAtt": ["StationsDDBTable", "Arn"]}
         - {"Fn::GetAtt": ["TrackRecordsDDBTable", "Arn"]}
+        - "Fn::Join": ["/", [
+            "Fn::GetAtt": ["TrackRecordsDDBTable", "Arn"],
+            "index",
+            "${self:custom.TrackRecordsDDBGSITypeAirtime}"
+          ]]
   environment:
     STATIONS_TABLE: ${self:custom.StationsDDBTableName}
     TRACKRECORDS_TABLE: ${self:custom.TrackRecordsDDBTableName}
@@ -53,6 +58,14 @@ functions:
     events:
       - http:
           path: stations/{station}/tracks
+          method: get
+  search:
+    handler: bin/api-aws/search
+    description: serves matching tracks for the received query
+    memorySize: 128
+    events:
+      - http:
+          path: search
           method: get
 
 resources:
@@ -101,5 +114,3 @@ resources:
             ProvisionedThroughput:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
-
-

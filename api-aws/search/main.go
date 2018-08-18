@@ -24,8 +24,10 @@ func Handler(apiRequest events.APIGatewayProxyRequest) (events.APIGatewayProxyRe
 		os.Getenv("TRACKRECORDS_TABLE_GSI_TYPE_AIRTIME"),
 	)
 
-	worker, err := request.CreateTracksWorker(trackRecordsDAO, apiRequest.PathParameters,
-		apiRequest.QueryStringParameters)
+	worker, err := request.CreateSearchWorker(
+		trackRecordsDAO,
+		apiRequest.QueryStringParameters,
+	)
 	if err != nil {
 		responseMessage := model.NewAPIResponseMessage(nil, err)
 		return awsutil.CreateResponse(200, responseMessage), nil
