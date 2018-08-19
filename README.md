@@ -16,4 +16,4 @@ serverless architecture developed with the
 - `GET /tracks/search?date=2018-02-12&q=Dani+California`
 - `GET /tracks/search?week=2018-02-12&q=The+Adventures+Of+Rain+Dance+Maggie`
 
-- `POST /tracks`
+- `PUT /stations/{station}/tracks/{timestamp}`
