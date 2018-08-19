@@ -93,6 +93,26 @@ func (ddb MockDynamoDB) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput
 	return output, nil
 }
 
+func (ddb MockDynamoDB) PutItem(input *dynamodb.PutItemInput) (*dynamodb.PutItemOutput, error) {
+	if input == nil {
+		return nil, errors.New("input must not be nil")
+	}
+
+	if input.TableName == nil {
+		return nil, errors.New("TableName must not be nil")
+	}
+
+	if input.Item == nil || len(input.Item) != 5 {
+		return nil, errors.New("Item must contain 5 mappings")
+	}
+
+	if input.ConditionExpression == nil ||
+		*input.ConditionExpression != "attribute_not_exists(stationId)" {
+		return nil, errors.New("ConditionExpression must be `attribute_not_exists(stationId)`")
+	}
+	return nil, nil
+}
+
 func TestDDBTrackRecordDAO_GetTrackRecordsSuccess(t *testing.T) {
 	trackRecordDAO := NewDDBTrackRecordDAO(
 		MockDynamoDB{},
@@ -190,6 +210,22 @@ func TestDDBTrackRecordDAO_GetTrackRecordsByStationFail(t *testing.T) {
 		if err == nil {
 			t.Errorf("(%q) GetTrackRecordsByStation(%q, %q, %q): got (%q, %v), expected (nil, error)",
 				trackRecordDAO, test.inputStation, test.inputStartDate, test.inputEndDate, trackRecords, err)
+		}
+	}
+}
+
+func TestDDBTrackRecordDAO_CreateTrackRecord(t *testing.T) {
+	trackRecordDAO := NewDDBTrackRecordDAO(MockDynamoDB{}, "testTable", "gsi")
+
+	var tests = []model.TrackRecord{
+		{"station-a", time.Now().Unix(), "track", model.Track{"RHCP", "Californication"}},
+	}
+
+	for _, testRecord := range tests {
+		err := trackRecordDAO.CreateTrackRecord(testRecord)
+		if err != nil {
+			t.Errorf("(%q) CreateTrackRecord(%q): got err (%v), expected err: false",
+				trackRecordDAO, testRecord, err)
 		}
 	}
 }

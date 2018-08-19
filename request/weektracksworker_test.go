@@ -41,6 +41,10 @@ func (dao MockTrackRecordDAOWeekVerifier) GetTrackRecordsByStation(stationId str
 	return []model.TrackRecord{}, nil
 }
 
+func (dao MockTrackRecordDAOWeekVerifier) CreateTrackRecord(trackRecord model.TrackRecord) error {
+	return nil
+}
+
 func TestNewWeekTracksWorker(t *testing.T) {
 	var tests = []struct {
 		dao         datalayer.TrackRecordDAO

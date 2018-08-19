@@ -54,6 +54,10 @@ func (dao MockTrackRecordDAO) GetTrackRecordsByStation(stationId string, start t
 	return trackRecords, nil
 }
 
+func (dao MockTrackRecordDAO) CreateTrackRecord(trackRecord model.TrackRecord) error {
+	return nil
+}
+
 var countedTracks = model.CountedTracks{
 	[]model.CountedTrack{
 		{3, model.Track{"RHCP", "Californication"}},

@@ -91,3 +91,22 @@ func valiDate(startDate, endDate time.Time) error {
 	}
 	return nil
 }
+
+func (dao *DDBTrackRecordDAO) CreateTrackRecord(trackRecord model.TrackRecord) error {
+	attributeMap, err := dynamodbattribute.MarshalMap(trackRecord)
+	if err != nil {
+		return err
+	}
+
+	putInput := &dynamodb.PutItemInput{
+		TableName: aws.String(dao.tableName),
+		Item:      attributeMap,
+		// put item only if the primary key is unique (https://stackoverflow.com/a/32833726/5801146)
+		// "attribute_not_existing" is looking for AN EXISTING ITEM WITH THE SAME PRIMARY KEY and an
+		// attribute (any value) with the provided name (stationId)
+		ConditionExpression: aws.String("attribute_not_exists(stationId)"),
+	}
+
+	_, err = dao.dynamoDB.PutItem(putInput)
+	return err
+}
