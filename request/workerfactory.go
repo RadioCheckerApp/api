@@ -1,8 +1,12 @@
 package request
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/RadioCheckerApp/api/datalayer"
+	"github.com/RadioCheckerApp/api/model"
+	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -16,11 +20,12 @@ const (
 )
 
 const (
-	queryStrDateParam    = "date"
-	queryStrWeekParam    = "week"
-	queryStrFilterParam  = "filter"
-	queryStrStationParam = "station"
-	queryStrQueryParam   = "q"
+	queryStrDateParam      = "date"
+	queryStrWeekParam      = "week"
+	queryStrFilterParam    = "filter"
+	queryStrStationParam   = "station"
+	queryStrQueryParam     = "q"
+	queryStrTimestampParam = "timestamp"
 )
 
 func CreateMetaWorker() Worker {
@@ -121,4 +126,45 @@ func getQuery(queryStringParams map[string]string) (string, error) {
 		return "", errors.New("no query provided")
 	}
 	return query, nil
+}
+
+func CreateCreateTrackWorker(trDAO datalayer.TrackRecordDAO, sDAO datalayer.StationDAO,
+	pathParams map[string]string, body []byte) (Worker, error) {
+	station, err := getStation(pathParams)
+	if err != nil {
+		return nil, err
+	}
+
+	timestamp, err := getTimestamp(pathParams)
+	if err != nil {
+		return nil, err
+	}
+
+	track, err := getTrack(body)
+	if err != nil {
+		return nil, err
+	}
+
+	trackRecord := model.TrackRecord{station, timestamp, "track", track}
+	return NewCreateTrackWorker(trDAO, sDAO, trackRecord)
+}
+
+func getTimestamp(pathParams map[string]string) (int64, error) {
+	timestamp, ok := pathParams[queryStrTimestampParam]
+	if !ok || timestamp == "" {
+		return 0, errors.New("no timestamp provided")
+	}
+	return strconv.ParseInt(timestamp, 10, 64)
+}
+
+func getTrack(body []byte) (model.Track, error) {
+	// TODO: Implement Unmarshaller interface in model.Track
+	var track model.Track
+	if err := json.Unmarshal(body, &track); err != nil {
+		return model.Track{}, errors.New("request body contains invalid JSON")
+	}
+	if reflect.DeepEqual(track, model.Track{}) {
+		return model.Track{}, errors.New("request body contains invalid data")
+	}
+	return track, nil
 }
