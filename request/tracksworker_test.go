@@ -55,6 +55,9 @@ func (dao MockTrackRecordDAO) GetTrackRecordsByStation(stationId string, start t
 }
 
 func (dao MockTrackRecordDAO) CreateTrackRecord(trackRecord model.TrackRecord) error {
+	if trackRecord.Title == "database error" {
+		return errors.New("database error")
+	}
 	return nil
 }
 
