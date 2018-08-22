@@ -23,6 +23,11 @@ provider:
             "index",
             "${self:custom.TrackRecordsDDBGSITypeAirtime}"
           ]]
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource:
+        - {"Fn::GetAtt": ["TrackRecordsDDBTable", "Arn"]}
   environment:
     STATIONS_TABLE: ${self:custom.StationsDDBTableName}
     TRACKRECORDS_TABLE: ${self:custom.TrackRecordsDDBTableName}
@@ -67,6 +72,14 @@ functions:
       - http:
           path: search
           method: get
+  tracks-create:
+    handler: bin/api-aws/tracks-create
+    description: takes the marshalled track object from the request's body and persists it
+    memorySize: 128
+    events:
+      - http:
+          path: stations/{station}/tracks/{timestamp}
+          method: put
 
 resources:
   Resources:
