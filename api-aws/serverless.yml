@@ -70,7 +70,7 @@ functions:
     memorySize: 128
     events:
       - http:
-          path: search
+          path: tracks/search
           method: get
   tracks-create:
     handler: bin/api-aws/tracks-create
