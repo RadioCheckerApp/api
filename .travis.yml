@@ -4,11 +4,14 @@ go:
   - "1.10"
 
 before_install:
-  - go get -t ./datalayer
-  - go get -t ./request
-  - go get -t ./api-aws/*/
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+install:
+  - dep ensure
 
 script:
+  - go test -race ./model
   - go test -race ./datalayer
   - go test -race ./request
   - go test -race ./api-aws/*/
+  - cd ./api-aws/ && make
