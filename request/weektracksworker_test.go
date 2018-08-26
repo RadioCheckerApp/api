@@ -41,6 +41,11 @@ func (dao MockTrackRecordDAOWeekVerifier) GetTrackRecordsByStation(stationId str
 	return []model.TrackRecord{}, nil
 }
 
+func (dao MockTrackRecordDAOWeekVerifier) GetMostRecentTrackRecordByStation(stationId string) (
+	model.TrackRecord, error) {
+	return model.TrackRecord{}, nil
+}
+
 func (dao MockTrackRecordDAOWeekVerifier) CreateTrackRecord(trackRecord model.TrackRecord) error {
 	return nil
 }

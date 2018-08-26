@@ -113,6 +113,79 @@ func (ddb MockDynamoDB) PutItem(input *dynamodb.PutItemInput) (*dynamodb.PutItem
 	return nil, nil
 }
 
+type MockDynamoDBLimitedQuery struct{}
+
+func (ddb MockDynamoDBLimitedQuery) ScanPages(input *dynamodb.ScanInput,
+	fn func(*dynamodb.ScanOutput, bool) bool) error {
+	return nil
+}
+
+func (ddb MockDynamoDBLimitedQuery) Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput,
+	error) {
+	if input == nil {
+		return nil, errors.New("input must not be nil")
+	}
+
+	if input.TableName == nil {
+		return nil, errors.New("TableName must not be nil")
+	}
+
+	if input.KeyConditionExpression == nil {
+		return nil, errors.New("KeyConditionExpression must not be nil")
+	}
+
+	if *input.KeyConditionExpression != "stationId = :stationId" {
+		return nil, errors.New("KeyConditionExpression must be `stationId = :stationId`")
+	}
+
+	if input.ExpressionAttributeNames != nil {
+		return nil, errors.New("ExpressionAttributeNames must be nil")
+	}
+
+	if input.ExpressionAttributeValues == nil {
+		return nil, errors.New("ExpressionAttributeValues must not be nil")
+	}
+
+	if _, ok := input.ExpressionAttributeValues[":stationId"]; input.IndexName == nil && !ok {
+		return nil, errors.New("ExpressionAttributeValues must contain a key `:stationId`")
+	}
+
+	if *input.ExpressionAttributeValues[":stationId"].S == "notracksstation" {
+		return &dynamodb.QueryOutput{
+			Items: []map[string]*dynamodb.AttributeValue{},
+		}, nil
+	}
+
+	if *input.ExpressionAttributeValues[":stationId"].S == "error" {
+		return nil, errors.New("database error")
+	}
+
+	stationId := "station-a"
+	airtime := "1234567890"
+	trackType := "track"
+	artist := "rhcp"
+	title := "californication"
+
+	output := &dynamodb.QueryOutput{
+		Items: []map[string]*dynamodb.AttributeValue{
+			{
+				"stationId": &dynamodb.AttributeValue{S: &stationId},
+				"airtime":   &dynamodb.AttributeValue{N: &airtime},
+				"type":      &dynamodb.AttributeValue{S: &trackType},
+				"artist":    &dynamodb.AttributeValue{S: &artist},
+				"title":     &dynamodb.AttributeValue{S: &title},
+			},
+		},
+	}
+
+	return output, nil
+}
+
+func (ddb MockDynamoDBLimitedQuery) PutItem(input *dynamodb.PutItemInput) (*dynamodb.
+	PutItemOutput, error) {
+	return nil, nil
+}
+
 func TestDDBTrackRecordDAO_GetTrackRecordsSuccess(t *testing.T) {
 	trackRecordDAO := NewDDBTrackRecordDAO(
 		MockDynamoDB{},
@@ -167,7 +240,7 @@ func TestDDBTrackRecordDAO_GetTrackRecordsFail(t *testing.T) {
 
 func TestDDBTrackRecordDAO_GetTrackRecordsByStationSuccess(t *testing.T) {
 	trackRecordDAO := NewDDBTrackRecordDAO(MockDynamoDB{}, "testTable", "gsi")
-	station := "station-a"
+	station := "ignoredDueToMock"
 	startDate := time.Now().AddDate(0, 0, -1)
 	endDate := time.Now()
 
@@ -210,6 +283,45 @@ func TestDDBTrackRecordDAO_GetTrackRecordsByStationFail(t *testing.T) {
 		if err == nil {
 			t.Errorf("(%q) GetTrackRecordsByStation(%q, %q, %q): got (%q, %v), expected (nil, error)",
 				trackRecordDAO, test.inputStation, test.inputStartDate, test.inputEndDate, trackRecords, err)
+		}
+	}
+}
+
+func TestDDBTrackRecordDAO_GetMostRecentTrackRecordByStationSuccess(t *testing.T) {
+	trackRecordDAO := NewDDBTrackRecordDAO(MockDynamoDBLimitedQuery{}, "testTable", "gsi")
+	station := "station-a"
+
+	expectedTrackRecord := model.TrackRecord{
+		"station-a",
+		1234567890,
+		"track",
+		model.Track{"rhcp", "californication"},
+	}
+
+	trackRecord, err := trackRecordDAO.GetMostRecentTrackRecordByStation(station)
+
+	if err != nil {
+		t.Errorf("(%q) GetMostRecentTrackRecordByStationSuccess(%q): got (%q, %v), expected (%q, nil)",
+			trackRecordDAO, station, trackRecord, err, expectedTrackRecord)
+		return
+	}
+
+	if trackRecord != expectedTrackRecord {
+		t.Errorf("(%q) GetMostRecentTrackRecordByStationSuccess(%q): got (%q, %v), expected (%q, nil)",
+			trackRecordDAO, station, trackRecord, err, expectedTrackRecord)
+	}
+}
+
+func TestDDBTrackRecordDAO_GetMostRecentTrackRecordByStationFail(t *testing.T) {
+	trackRecordDAO := NewDDBTrackRecordDAO(MockDynamoDBLimitedQuery{}, "testTable", "gsi")
+
+	var tests = []string{"notracksstation", "error"}
+
+	for _, test := range tests {
+		trackRecord, err := trackRecordDAO.GetMostRecentTrackRecordByStation(test)
+		if err == nil {
+			t.Errorf("(%q) GetMostRecentTrackRecordByStation(%q): got (%q, %v), expected (nil, error)",
+				trackRecordDAO, test, trackRecord, err)
 		}
 	}
 }

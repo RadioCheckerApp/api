@@ -69,6 +69,29 @@ func (dao *DDBTrackRecordDAO) GetTrackRecordsByStation(station string, startDate
 	return dao.executeQuery(queryInput)
 }
 
+func (dao *DDBTrackRecordDAO) GetMostRecentTrackRecordByStation(station string) (model.
+	TrackRecord, error) {
+	queryInput := &dynamodb.QueryInput{
+		TableName:              aws.String(dao.tableName),
+		KeyConditionExpression: aws.String("stationId = :stationId"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":stationId": {S: aws.String(station)},
+		},
+		ScanIndexForward: aws.Bool(false), // descending order, defined by sort key
+		Limit:            aws.Int64(1),    // top result only
+	}
+
+	trackRecords, err := dao.executeQuery(queryInput)
+	if err != nil {
+		return model.TrackRecord{}, err
+	}
+	if len(trackRecords) == 0 {
+		return model.TrackRecord{},
+			errors.New("no track records in database for station " + station)
+	}
+	return trackRecords[0], nil
+}
+
 func (dao *DDBTrackRecordDAO) executeQuery(input *dynamodb.QueryInput) ([]model.TrackRecord,
 	error) {
 	output, err := dao.dynamoDB.Query(input)
