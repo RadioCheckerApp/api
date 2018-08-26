@@ -17,6 +17,7 @@ const (
 	Err Filter = iota
 	All
 	Top
+	Latest
 )
 
 const (
@@ -46,6 +47,10 @@ func CreateTracksWorker(dao datalayer.TrackRecordDAO, pathParams,
 	filter, err := getFilter(queryStringParams)
 	if err != nil {
 		return nil, err
+	}
+
+	if filter == Latest {
+		return NewTracksWorker(dao, station)
 	}
 
 	if formattedDateStr, ok := queryStringParams[queryStrDateParam]; ok {
@@ -82,6 +87,8 @@ func getFilter(queryStringParams map[string]string) (Filter, error) {
 		return Top, nil
 	case "all":
 		return All, nil
+	case "latest":
+		return Latest, nil
 	default:
 		return Err, errors.New("invalid filter provided")
 	}

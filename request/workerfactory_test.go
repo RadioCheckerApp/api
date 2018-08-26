@@ -132,6 +132,27 @@ func TestCreateTracksWorker(t *testing.T) {
 			nil,
 			true,
 		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": "station-a"},
+			map[string]string{"filter": "latest"},
+			TracksWorker{MockTrackRecordDAO{}, "station-a"},
+			false,
+		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": "station-a"},
+			map[string]string{"date": "2018-08-26", "filter": "latest"},
+			TracksWorker{MockTrackRecordDAO{}, "station-a"},
+			false,
+		},
+		{
+			MockTrackRecordDAO{},
+			map[string]string{"station": ""},
+			map[string]string{},
+			nil,
+			true,
+		},
 	}
 
 	for _, test := range tests {
