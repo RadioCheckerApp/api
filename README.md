@@ -13,6 +13,7 @@ serverless architecture developed with the
 - `GET /stations`
 - `GET /stations/{station}/tracks?date=2018-02-12&filter=top`
 - `GET /stations/{station}/tracks?week=2018-02-12&filter=all`
+- `GET /stations/{station}/tracks?filter=latest`
 - `GET /tracks/search?date=2018-02-12&q=Dani+California`
 - `GET /tracks/search?week=2018-02-12&q=The+Adventures+Of+Rain+Dance+Maggie`
 
