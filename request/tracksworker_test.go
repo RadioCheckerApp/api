@@ -54,6 +54,15 @@ func (dao MockTrackRecordDAO) GetTrackRecordsByStation(stationId string, start t
 	return trackRecords, nil
 }
 
+func (dao MockTrackRecordDAO) GetMostRecentTrackRecordByStation(stationId string) (model.
+	TrackRecord, error) {
+	if stationId == "notracksstation" {
+		return model.TrackRecord{}, errors.New("no track records in database")
+	}
+	return model.TrackRecord{stationId, 1234567890, "track", model.Track{"RHCP",
+		"Californication"}}, nil
+}
+
 func (dao MockTrackRecordDAO) CreateTrackRecord(trackRecord model.TrackRecord) error {
 	if trackRecord.Title == "database error" {
 		return errors.New("database error")
@@ -225,6 +234,50 @@ func TestTracksWorker_AllTracks(t *testing.T) {
 				t.Errorf("(%q).AllTracks(%v, %v): expected item (%q) is not element of result (%q)",
 					test.worker, test.startDate, test.endDate, track, result)
 			}
+		}
+	}
+}
+
+func TestTracksWorker_MostRecentTrackRecord(t *testing.T) {
+	var tests = []struct {
+		worker         TracksWorker
+		expectedResult model.TrackRecord
+		expectedErr    bool
+	}{
+		{
+			TracksWorker{MockTrackRecordDAO{}, "station-A"},
+			model.TrackRecord{
+				"station-A",
+				1234567890,
+				"track",
+				model.Track{"RHCP", "Californication"},
+			},
+			false,
+		},
+		{
+			TracksWorker{MockTrackRecordDAO{}, "notracksstation"},
+			model.TrackRecord{},
+			true,
+		},
+	}
+
+	for _, test := range tests {
+		result, err := test.worker.MostRecentTrackRecord()
+		if (err != nil) != test.expectedErr {
+			t.Errorf("(%q).MostRecentTrackRecord(): got err (%v), expected err: %v",
+				test.worker, err, test.expectedErr)
+			continue
+		}
+
+		if err != nil {
+			// the following tests require a valid result,
+			// continue with next test if result was created along with an error
+			continue
+		}
+
+		if !reflect.DeepEqual(result, test.expectedResult) {
+			t.Errorf("(%q).MostRecentTrackRecord(): result (%q) does not match expected result (%q)",
+				test.worker, result, test.expectedResult)
 		}
 	}
 }

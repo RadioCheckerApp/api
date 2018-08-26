@@ -68,3 +68,15 @@ func (worker TracksWorker) AllTracks(startDate, endDate time.Time) (model.Tracks
 
 	return model.Tracks{tracks}, nil
 }
+
+func (worker TracksWorker) MostRecentTrackRecord() (model.TrackRecord, error) {
+	trackRecord, err := worker.dao.GetMostRecentTrackRecordByStation(worker.station)
+	if err != nil {
+		return model.TrackRecord{}, err
+	}
+	return trackRecord, nil
+}
+
+func (worker TracksWorker) HandleRequest() (interface{}, error) {
+	return worker.MostRecentTrackRecord()
+}
