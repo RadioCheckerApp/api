@@ -15,3 +15,15 @@ script:
   - go test -race ./request
   - go test -race ./api-aws/*/
   - cd ./api-aws/ && make
+
+before_deploy:
+  - cd ..
+  - npm install -g serverless
+
+deploy:
+  # deploy to production if commit is tagged
+  skip_cleanup: true
+  provider: script
+  script: bash ./deploy.sh
+  on:
+    tags: true
