@@ -71,6 +71,7 @@ functions:
           path: stations
           method: get
           private: true
+          cors: true
   tracks:
     handler: bin/api-aws/tracks
     description: serves tracks and track statistics
@@ -80,6 +81,7 @@ functions:
           path: stations/{station}/tracks
           method: get
           private: true
+          cors: true
   search:
     handler: bin/api-aws/search
     description: serves matching tracks for the received query
@@ -89,6 +91,7 @@ functions:
           path: tracks/search
           method: get
           private: true
+          cors: true
   tracks-create:
     handler: bin/api-aws/tracks-create
     description: takes the marshalled track object from the request's body and persists it

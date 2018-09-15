@@ -21,7 +21,10 @@ func TestCreateResponse(t *testing.T) {
 			200,
 			model.APIResponseMessage{true, test{"hello world"}, ""},
 			events.APIGatewayProxyResponse{
-				Headers:    map[string]string{"Content-Type": "application/json"},
+				Headers: map[string]string{
+					"Content-Type":                "application/json",
+					"Access-Control-Allow-Origin": "*",
+				},
 				Body:       "{\"success\":true,\"data\":{\"payload\":\"hello world\"}}",
 				StatusCode: 200,
 			},
@@ -30,8 +33,10 @@ func TestCreateResponse(t *testing.T) {
 			200,
 			model.APIResponseMessage{false, nil, "errormsg"},
 			events.APIGatewayProxyResponse{
-				Headers:    map[string]string{"Content-Type": "application/json"},
-				Body:       "{\"success\":false,\"message\":\"errormsg\"}",
+				Headers: map[string]string{
+					"Content-Type":                "application/json",
+					"Access-Control-Allow-Origin": "*",
+				}, Body: "{\"success\":false,\"message\":\"errormsg\"}",
 				StatusCode: 200,
 			},
 		},
