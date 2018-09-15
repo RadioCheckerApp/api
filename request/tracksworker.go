@@ -45,7 +45,9 @@ func (worker TracksWorker) TopTracks(startDate, endDate time.Time) (model.Counte
 		return orderedTracks[i].Counter > orderedTracks[j].Counter
 	})
 
-	return model.CountedTracks{orderedTracks}, nil
+	resultLimitIdx := findResultLimitIdx(orderedTracks)
+
+	return model.CountedTracks{orderedTracks[:resultLimitIdx]}, nil
 }
 
 func (worker TracksWorker) AllTracks(startDate, endDate time.Time) (model.Tracks, error) {
@@ -79,4 +81,24 @@ func (worker TracksWorker) MostRecentTrackRecord() (model.TrackRecord, error) {
 
 func (worker TracksWorker) HandleRequest() (interface{}, error) {
 	return worker.MostRecentTrackRecord()
+}
+
+func findResultLimitIdx(tracksOrderedDescendinglyByCounter []model.CountedTrack) int {
+	if len(tracksOrderedDescendinglyByCounter) <= 3 || tracksOrderedDescendinglyByCounter[0].Counter <= 3 {
+		return len(tracksOrderedDescendinglyByCounter)
+	}
+
+	prevCounter := tracksOrderedDescendinglyByCounter[0].Counter
+	foundRanks, limitIdx := 1, 1
+	for ; limitIdx < len(tracksOrderedDescendinglyByCounter) && foundRanks <= 3; limitIdx++ {
+		if prevCounter != tracksOrderedDescendinglyByCounter[limitIdx].Counter {
+			foundRanks++
+			prevCounter = tracksOrderedDescendinglyByCounter[limitIdx].Counter
+		}
+	}
+
+	if foundRanks > 3 {
+		return limitIdx - 1
+	}
+	return limitIdx
 }

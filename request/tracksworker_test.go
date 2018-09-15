@@ -70,6 +70,74 @@ func (dao MockTrackRecordDAO) CreateTrackRecord(trackRecord model.TrackRecord) e
 	return nil
 }
 
+type MockTrackRecordDAOLimitTracks struct{}
+
+func (dao MockTrackRecordDAOLimitTracks) GetTrackRecords(start, end time.Time) ([]model.TrackRecord, error) {
+	return []model.TrackRecord{}, nil
+}
+
+func (dao MockTrackRecordDAOLimitTracks) GetTrackRecordsByStation(stationId string, start time.Time,
+	end time.Time) ([]model.TrackRecord, error) {
+	if stationId == "withMoreThanTopThree" {
+		trackRecords := []model.TrackRecord{
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"Cardi B", "I Like It"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"Cardi B", "I Like It"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"MØ", "Final Song"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+		}
+		return trackRecords, nil
+	}
+
+	if stationId == "withMoreThanTopThreeAndDuplicatedCounters" {
+		trackRecords := []model.TrackRecord{
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"Cardi B", "I Like It"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"Cardi B", "I Like It"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"MØ", "Final Song"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+		}
+		return trackRecords, nil
+	}
+
+	if stationId == "withDuplicatedCountersOnly" {
+		trackRecords := []model.TrackRecord{
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"RHCP", "Dani California"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"Cardi B", "I Like It"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"MØ", "Final Song"}},
+			{stationId, time.Now().Unix(), "track", model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+		}
+		return trackRecords, nil
+	}
+	return []model.TrackRecord{}, nil
+}
+
+func (dao MockTrackRecordDAOLimitTracks) GetMostRecentTrackRecordByStation(stationId string) (model.
+	TrackRecord, error) {
+	return model.TrackRecord{}, nil
+}
+
+func (dao MockTrackRecordDAOLimitTracks) CreateTrackRecord(trackRecord model.TrackRecord) error {
+	return nil
+}
+
 var countedTracks = model.CountedTracks{
 	[]model.CountedTrack{
 		{3, model.Track{"RHCP", "Californication"}},
@@ -160,11 +228,110 @@ func TestTracksWorker_TopTracks(t *testing.T) {
 			continue
 		}
 
+		if len(result.CountedTracks) != len(test.expectedResult.CountedTracks) {
+			t.Errorf("(%q).TopTracks(%v, %v): got len of result (%q), expected (%q)",
+				test.worker, test.startDate, test.endDate, len(result.CountedTracks),
+				len(test.expectedResult.CountedTracks))
+			continue
+		}
+
 		for i, expectedCountedTrack := range test.expectedResult.CountedTracks {
 			if !reflect.DeepEqual(result.CountedTracks[i], expectedCountedTrack) {
 				t.Errorf("(%q).TopTracks(%v, %v): got result (%q), expected (%q)",
 					test.worker, test.startDate, test.endDate, result, test.expectedResult)
 			}
+		}
+	}
+}
+
+var countedTracksWithMoreThanTopThree = model.CountedTracks{
+	[]model.CountedTrack{
+		{5, model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+		{3, model.Track{"RHCP", "Dani California"}},
+		{2, model.Track{"Cardi B", "I Like It"}},
+	},
+}
+
+var countedTracksWithMoreThanTopThreeAndDuplicatedCounters = model.CountedTracks{
+	[]model.CountedTrack{
+		{5, model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+		{5, model.Track{"RHCP", "Dani California"}},
+		{2, model.Track{"Cardi B", "I Like It"}},
+		{1, model.Track{"MØ", "Final Song"}},
+		{1, model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+	},
+}
+
+var countedTracksWithDuplicatedCountersOnly = model.CountedTracks{
+	[]model.CountedTrack{
+		{1, model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
+		{1, model.Track{"RHCP", "Dani California"}},
+		{1, model.Track{"Cardi B", "I Like It"}},
+		{1, model.Track{"MØ", "Final Song"}},
+		{1, model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
+	},
+}
+
+func TestTracksWorker_TopTracksLimited(t *testing.T) {
+	startDate, endDate := time.Now(), time.Now()
+
+	var tests = []struct {
+		worker         TracksWorker
+		expectedResult model.CountedTracks
+		expectedErr    bool
+	}{
+		{
+			TracksWorker{MockTrackRecordDAOLimitTracks{}, "withMoreThanTopThree"},
+			countedTracksWithMoreThanTopThree,
+			false,
+		},
+		{
+			TracksWorker{MockTrackRecordDAOLimitTracks{}, "withMoreThanTopThreeAndDuplicatedCounters"},
+			countedTracksWithMoreThanTopThreeAndDuplicatedCounters,
+			false,
+		},
+		{
+			TracksWorker{MockTrackRecordDAOLimitTracks{}, "withDuplicatedCountersOnly"},
+			countedTracksWithDuplicatedCountersOnly,
+			false,
+		},
+	}
+
+	for _, test := range tests {
+		result, err := test.worker.TopTracks(startDate, endDate)
+		if (err != nil) != test.expectedErr {
+			t.Errorf("(%q).TopTracks(%v, %v): got err (%v), expected err: %v",
+				test.worker, startDate, endDate, err, test.expectedErr)
+			continue
+		}
+
+		if err != nil {
+			// the following tests require a valid result,
+			// continue with next test if result was created along with an error
+			continue
+		}
+
+		if len(result.CountedTracks) != len(test.expectedResult.CountedTracks) {
+			t.Errorf("(%q).TopTracks(%v, %v): got len of result (%q), expected (%q)",
+				test.worker, startDate, endDate, len(result.CountedTracks),
+				len(test.expectedResult.CountedTracks))
+			continue
+		}
+
+		expectedNumberOfTracksPerCounter := make(map[int]int)
+		for _, expectedTrack := range test.expectedResult.CountedTracks {
+			expectedNumberOfTracksPerCounter[expectedTrack.Counter]++
+		}
+
+		gotNumberOfTracksPerCounter := make(map[int]int)
+		for _, gotTrack := range result.CountedTracks {
+			gotNumberOfTracksPerCounter[gotTrack.Counter]++
+		}
+
+		// just check if the number of tracks per counter value are equal
+		if !reflect.DeepEqual(expectedNumberOfTracksPerCounter, gotNumberOfTracksPerCounter) {
+			t.Errorf("(%q).TopTracks(%v, %v): got number of track per counter: (%q), expected (%q)",
+				test.worker, startDate, endDate, gotNumberOfTracksPerCounter, expectedNumberOfTracksPerCounter)
 		}
 	}
 }
