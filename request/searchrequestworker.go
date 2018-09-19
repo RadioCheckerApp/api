@@ -36,7 +36,10 @@ func (worker SearchWorker) Search(startDate, endDate time.Time) (model.MatchedTr
 
 	matchedTrackRecords := worker.findMatchingTrackRecords(trackRecords)
 	if len(matchedTrackRecords) == 0 {
-		return model.MatchedTracks{[]model.MatchedTrack{}}, nil
+		return model.MatchedTracks{
+			model.MetaInfo{startDate, endDate},
+			[]model.MatchedTrack{},
+		}, nil
 	}
 
 	stationIDs := extractStationIDs(matchedTrackRecords)
@@ -50,7 +53,10 @@ func (worker SearchWorker) Search(startDate, endDate time.Time) (model.MatchedTr
 		groupedTracks[trackRecord.Track][trackRecord.StationId]++
 	}
 
-	return model.MatchedTracks{buildResultStructure(groupedTracks)}, nil
+	return model.MatchedTracks{
+		model.MetaInfo{startDate, endDate},
+		buildResultStructure(groupedTracks),
+	}, nil
 }
 
 func (worker SearchWorker) findMatchingTrackRecords(trackRecords []model.TrackRecord) []model.

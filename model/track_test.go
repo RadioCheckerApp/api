@@ -1,7 +1,9 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
+	"time"
 )
 
 type testTrackSuccess struct {
@@ -156,6 +158,36 @@ func TestTrack_Sanitize_Err(t *testing.T) {
 		if err := test.Sanitize(); err == nil {
 			t.Errorf("#%d Sanitize(): Expected no error, got `%v` for Title: `%s`, Artist: `%s`.",
 				i, err, test.Title, test.Artist)
+		}
+	}
+}
+
+func TestMetaInfo_MarshalJSON(t *testing.T) {
+	dayStart, _ := time.Parse(time.RFC3339, "2018-09-19T00:00:00+00:00")
+	dayEnd, _ := time.Parse(time.RFC3339, "2018-09-19T23:59:59+00:00")
+
+	weekStart, _ := time.Parse(time.RFC3339, "2018-09-17T00:00:00+00:00")
+	weekEnd, _ := time.Parse(time.RFC3339, "2018-09-23T23:59:59+00:00")
+
+	var tests = []struct {
+		metaInfo        MetaInfo
+		expectedJSONStr string
+	}{
+		{
+			MetaInfo{dayStart, dayEnd},
+			"{\"date\":\"19.09.2018\"}",
+		},
+		{
+			MetaInfo{weekStart, weekEnd},
+			"{\"start_date\":\"17.09.2018\",\"end_date\":\"23.09.2018\"}",
+		},
+	}
+
+	for _, test := range tests {
+		jsonStr, _ := json.Marshal(test.metaInfo)
+		if string(jsonStr) != test.expectedJSONStr {
+			t.Errorf("json.Marshal(%v): got: `%s`, expected: `%s`",
+				test.metaInfo, jsonStr, test.expectedJSONStr)
 		}
 	}
 }

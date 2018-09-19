@@ -39,6 +39,10 @@ func TestNewSearchWorker(t *testing.T) {
 }
 
 var matchedTracks0 = model.MatchedTracks{
+	model.MetaInfo{
+		time.Now(), // to be defined in the specific tests
+		time.Now(), // to be defined in the specific tests
+	},
 	[]model.MatchedTrack{
 		{
 			map[string]int{"station-a": 3, "station-b": 1},
@@ -48,6 +52,10 @@ var matchedTracks0 = model.MatchedTracks{
 }
 
 var matchedTracks1 = model.MatchedTracks{
+	model.MetaInfo{
+		time.Now(), // to be defined in the specific tests
+		time.Now(), // to be defined in the specific tests
+	},
 	[]model.MatchedTrack{
 		{
 			map[string]int{"station-a": 3, "station-b": 1},
@@ -61,6 +69,10 @@ var matchedTracks1 = model.MatchedTracks{
 }
 
 var matchedTracks2 = model.MatchedTracks{
+	model.MetaInfo{
+		time.Now(), // to be defined in the specific tests
+		time.Now(), // to be defined in the specific tests
+	},
 	[]model.MatchedTrack{
 		{
 			map[string]int{"station-a": 3, "station-b": 1, "station-c": 0},
@@ -78,6 +90,10 @@ var matchedTracks2 = model.MatchedTracks{
 }
 
 var matchedTracks3 = model.MatchedTracks{
+	model.MetaInfo{
+		time.Now(), // to be defined in the specific tests
+		time.Now(), // to be defined in the specific tests
+	},
 	[]model.MatchedTrack{
 		{
 			map[string]int{"station-b": 1},
@@ -87,8 +103,20 @@ var matchedTracks3 = model.MatchedTracks{
 }
 
 func TestSearchWorker_Search(t *testing.T) {
-	var startDate = time.Now()
-	var endDate = startDate.AddDate(0, 0, 1)
+	startDate := time.Now()
+	endDate := startDate.AddDate(0, 0, 1)
+
+	matchedTracks0.StartDate = startDate
+	matchedTracks0.EndDate = endDate
+
+	matchedTracks1.StartDate = startDate
+	matchedTracks1.EndDate = endDate
+
+	matchedTracks2.StartDate = startDate
+	matchedTracks2.EndDate = endDate
+
+	matchedTracks3.StartDate = startDate
+	matchedTracks3.EndDate = endDate
 
 	var tests = []struct {
 		worker         SearchWorker
@@ -129,14 +157,20 @@ func TestSearchWorker_Search(t *testing.T) {
 			SearchWorker{MockTrackRecordDAO{}, []string{"no", "tracks", "query"}},
 			startDate,
 			endDate,
-			model.MatchedTracks{},
+			model.MatchedTracks{
+				model.MetaInfo{startDate, endDate},
+				[]model.MatchedTrack{},
+			},
 			false,
 		},
 		{
 			SearchWorker{MockTrackRecordDAO{}, []string{""}},
 			endDate,
 			startDate,
-			model.MatchedTracks{},
+			model.MatchedTracks{
+				model.MetaInfo{startDate, endDate},
+				[]model.MatchedTrack{},
+			},
 			true,
 		},
 	}
@@ -153,6 +187,12 @@ func TestSearchWorker_Search(t *testing.T) {
 			// the following tests require a valid result,
 			// continue with next test if result was created along with an error
 			continue
+		}
+
+		if result.StartDate != test.expectedResult.StartDate ||
+			result.EndDate != test.expectedResult.EndDate {
+			t.Errorf("(%q).Search(%v, %v): got result startdate: %v / enddate: %v",
+				test.worker, test.startDate, test.endDate, result.StartDate, result.EndDate)
 		}
 
 		if len(result.MatchedTracks) != len(test.expectedResult.MatchedTracks) {

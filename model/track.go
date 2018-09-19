@@ -1,8 +1,10 @@
 package model
 
 import (
+	"encoding/json"
 	"errors"
 	"regexp"
+	"time"
 )
 
 type Track struct {
@@ -70,13 +72,50 @@ type MatchedTrack struct {
 }
 
 type Tracks struct {
+	MetaInfo
 	Tracks []Track `json:"tracks"`
 }
 
 type CountedTracks struct {
+	MetaInfo
 	CountedTracks []CountedTrack `json:"tracks"`
 }
 
 type MatchedTracks struct {
+	MetaInfo
 	MatchedTracks []MatchedTrack `json:"tracks"`
+}
+
+type MetaInfo struct {
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+func (m MetaInfo) MarshalJSON() ([]byte, error) {
+	dateFormat := "02.01.2006"
+	equalDay := m.StartDate.Day() == m.EndDate.Day() &&
+		m.StartDate.Month() == m.EndDate.Month() &&
+		m.StartDate.Year() == m.EndDate.Year()
+	if equalDay {
+		return marshalSingleDayInterval(m, dateFormat)
+	}
+	return marshalMultiDayInterval(m, dateFormat)
+}
+
+func marshalSingleDayInterval(m MetaInfo, dateFormat string) ([]byte, error) {
+	return json.Marshal(&struct {
+		Date string `json:"date"`
+	}{
+		Date: m.StartDate.Format(dateFormat),
+	})
+}
+
+func marshalMultiDayInterval(m MetaInfo, dateFormat string) ([]byte, error) {
+	return json.Marshal(&struct {
+		StartDate string `json:"start_date"`
+		EndDate   string `json:"end_date"`
+	}{
+		StartDate: m.StartDate.Format(dateFormat),
+		EndDate:   m.EndDate.Format(dateFormat),
+	})
 }

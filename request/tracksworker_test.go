@@ -139,6 +139,10 @@ func (dao MockTrackRecordDAOLimitTracks) CreateTrackRecord(trackRecord model.Tra
 }
 
 var countedTracks = model.CountedTracks{
+	model.MetaInfo{
+		time.Now(), // to be defined in the specific tests
+		time.Now(), // to be defined in the specific tests
+	},
 	[]model.CountedTrack{
 		{3, model.Track{"RHCP", "Californication"}},
 		{2, model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
@@ -147,6 +151,10 @@ var countedTracks = model.CountedTracks{
 }
 
 var tracks = model.Tracks{
+	model.MetaInfo{
+		time.Now(), // to be defined in the specific tests
+		time.Now(), // to be defined in the specific tests
+	},
 	[]model.Track{
 		{"RHCP", "Californication"},
 		{"Jonas Blue, Jack & Jack", "Rise"},
@@ -181,8 +189,11 @@ func TestNewTracksWorker(t *testing.T) {
 }
 
 func TestTracksWorker_TopTracks(t *testing.T) {
-	var startDate = time.Now()
-	var endDate = startDate.AddDate(0, 0, 1)
+	startDate := time.Now()
+	endDate := startDate.AddDate(0, 0, 1)
+
+	countedTracks.StartDate = startDate
+	countedTracks.EndDate = endDate
 
 	var tests = []struct {
 		worker         TracksWorker
@@ -202,7 +213,10 @@ func TestTracksWorker_TopTracks(t *testing.T) {
 			TracksWorker{MockTrackRecordDAO{}, "notracksstation"},
 			startDate,
 			endDate,
-			model.CountedTracks{},
+			model.CountedTracks{
+				model.MetaInfo{startDate, endDate},
+				[]model.CountedTrack{},
+			},
 			false,
 		},
 		{
@@ -228,6 +242,12 @@ func TestTracksWorker_TopTracks(t *testing.T) {
 			continue
 		}
 
+		if result.StartDate != test.expectedResult.StartDate ||
+			result.EndDate != test.expectedResult.EndDate {
+			t.Errorf("(%q).TopTracks(%v, %v): got result startdate: %v / enddate: %v",
+				test.worker, test.startDate, test.endDate, result.StartDate, result.EndDate)
+		}
+
 		if len(result.CountedTracks) != len(test.expectedResult.CountedTracks) {
 			t.Errorf("(%q).TopTracks(%v, %v): got len of result (%q), expected (%q)",
 				test.worker, test.startDate, test.endDate, len(result.CountedTracks),
@@ -245,6 +265,10 @@ func TestTracksWorker_TopTracks(t *testing.T) {
 }
 
 var countedTracksWithMoreThanTopThree = model.CountedTracks{
+	model.MetaInfo{
+		time.Now(), // to be defined in the specific tests
+		time.Now(), // to be defined in the specific tests
+	},
 	[]model.CountedTrack{
 		{5, model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
 		{3, model.Track{"RHCP", "Dani California"}},
@@ -253,6 +277,10 @@ var countedTracksWithMoreThanTopThree = model.CountedTracks{
 }
 
 var countedTracksWithMoreThanTopThreeAndDuplicatedCounters = model.CountedTracks{
+	model.MetaInfo{
+		time.Now(), // to be defined in the specific tests
+		time.Now(), // to be defined in the specific tests
+	},
 	[]model.CountedTrack{
 		{5, model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
 		{5, model.Track{"RHCP", "Dani California"}},
@@ -263,6 +291,10 @@ var countedTracksWithMoreThanTopThreeAndDuplicatedCounters = model.CountedTracks
 }
 
 var countedTracksWithDuplicatedCountersOnly = model.CountedTracks{
+	model.MetaInfo{
+		time.Now(), // to be defined in the specific tests
+		time.Now(), // to be defined in the specific tests
+	},
 	[]model.CountedTrack{
 		{1, model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
 		{1, model.Track{"RHCP", "Dani California"}},
@@ -273,7 +305,16 @@ var countedTracksWithDuplicatedCountersOnly = model.CountedTracks{
 }
 
 func TestTracksWorker_TopTracksLimited(t *testing.T) {
-	startDate, endDate := time.Now(), time.Now()
+	startDate, endDate := time.Now(), time.Now().AddDate(0, 0, 1)
+
+	countedTracksWithMoreThanTopThree.StartDate = startDate
+	countedTracksWithMoreThanTopThree.EndDate = endDate
+
+	countedTracksWithMoreThanTopThreeAndDuplicatedCounters.StartDate = startDate
+	countedTracksWithMoreThanTopThreeAndDuplicatedCounters.EndDate = endDate
+
+	countedTracksWithDuplicatedCountersOnly.StartDate = startDate
+	countedTracksWithDuplicatedCountersOnly.EndDate = endDate
 
 	var tests = []struct {
 		worker         TracksWorker
@@ -311,6 +352,12 @@ func TestTracksWorker_TopTracksLimited(t *testing.T) {
 			continue
 		}
 
+		if result.StartDate != test.expectedResult.StartDate ||
+			result.EndDate != test.expectedResult.EndDate {
+			t.Errorf("(%q).TopTracks(%v, %v): got result startdate: %v / enddate: %v",
+				test.worker, startDate, endDate, result.StartDate, result.EndDate)
+		}
+
 		if len(result.CountedTracks) != len(test.expectedResult.CountedTracks) {
 			t.Errorf("(%q).TopTracks(%v, %v): got len of result (%q), expected (%q)",
 				test.worker, startDate, endDate, len(result.CountedTracks),
@@ -337,8 +384,11 @@ func TestTracksWorker_TopTracksLimited(t *testing.T) {
 }
 
 func TestTracksWorker_AllTracks(t *testing.T) {
-	var startDate = time.Now()
-	var endDate = startDate.AddDate(0, 0, 1)
+	startDate := time.Now()
+	endDate := startDate.AddDate(0, 0, 1)
+
+	tracks.StartDate = startDate
+	tracks.EndDate = endDate
 
 	var tests = []struct {
 		worker         TracksWorker
@@ -358,7 +408,10 @@ func TestTracksWorker_AllTracks(t *testing.T) {
 			TracksWorker{MockTrackRecordDAO{}, "notracksstation"},
 			startDate,
 			endDate,
-			model.Tracks{},
+			model.Tracks{
+				model.MetaInfo{startDate, endDate},
+				[]model.Track{},
+			},
 			false,
 		},
 		{
@@ -382,6 +435,12 @@ func TestTracksWorker_AllTracks(t *testing.T) {
 			// the following tests require a valid result,
 			// continue with next test if result was created along with an error
 			continue
+		}
+
+		if result.StartDate != test.expectedResult.StartDate ||
+			result.EndDate != test.expectedResult.EndDate {
+			t.Errorf("(%q).AllTracks(%v, %v): got result startdate: %v / enddate: %v",
+				test.worker, test.startDate, test.endDate, result.StartDate, result.EndDate)
 		}
 
 		if len(result.Tracks) != len(test.expectedResult.Tracks) {
