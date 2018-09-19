@@ -48,11 +48,10 @@ func (worker TracksWorker) TopTracks(startDate, endDate time.Time) (model.Counte
 	resultLimitIdx := findResultLimitIdx(orderedTracks)
 
 	return model.CountedTracks{
-		MetaInfo: model.MetaInfo{
-			StartDate: startDate,
-			EndDate:   endDate,
-		},
-		CountedTracks: orderedTracks[:resultLimitIdx],
+		worker.station,
+		startDate,
+		endDate,
+		orderedTracks[:resultLimitIdx],
 	}, nil
 }
 
@@ -75,11 +74,10 @@ func (worker TracksWorker) AllTracks(startDate, endDate time.Time) (model.Tracks
 	}
 
 	return model.Tracks{
-		MetaInfo: model.MetaInfo{
-			StartDate: startDate,
-			EndDate:   endDate,
-		},
-		Tracks: tracks,
+		worker.station,
+		startDate,
+		endDate,
+		tracks,
 	}, nil
 }
 

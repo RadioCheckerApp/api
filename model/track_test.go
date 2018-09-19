@@ -162,32 +162,118 @@ func TestTrack_Sanitize_Err(t *testing.T) {
 	}
 }
 
-func TestMetaInfo_MarshalJSON(t *testing.T) {
-	dayStart, _ := time.Parse(time.RFC3339, "2018-09-19T00:00:00+00:00")
-	dayEnd, _ := time.Parse(time.RFC3339, "2018-09-19T23:59:59+00:00")
+var dayStart, _ = time.Parse(time.RFC3339, "2018-09-19T00:00:00+00:00")
+var dayEnd, _ = time.Parse(time.RFC3339, "2018-09-19T23:59:59+00:00")
 
-	weekStart, _ := time.Parse(time.RFC3339, "2018-09-17T00:00:00+00:00")
-	weekEnd, _ := time.Parse(time.RFC3339, "2018-09-23T23:59:59+00:00")
+var weekStart, _ = time.Parse(time.RFC3339, "2018-09-17T00:00:00+00:00")
+var weekEnd, _ = time.Parse(time.RFC3339, "2018-09-23T23:59:59+00:00")
 
+func TestTracks_MarshalJSON(t *testing.T) {
 	var tests = []struct {
-		metaInfo        MetaInfo
+		tracks          *Tracks
 		expectedJSONStr string
 	}{
 		{
-			MetaInfo{dayStart, dayEnd},
-			"{\"date\":\"19.09.2018\"}",
+			&Tracks{
+				"test",
+				dayStart,
+				dayEnd,
+				[]Track{{"artist", "title"}},
+			},
+			"{\"date\":\"2018-09-19\",\"station\":\"test\"," +
+				"\"tracks\":[{\"artist\":\"artist\",\"title\":\"title\"}]}",
 		},
 		{
-			MetaInfo{weekStart, weekEnd},
-			"{\"start_date\":\"17.09.2018\",\"end_date\":\"23.09.2018\"}",
+			&Tracks{
+				"test",
+				weekStart,
+				weekEnd,
+				[]Track{{"artist", "title"}},
+			},
+			"{\"start_date\":\"2018-09-17\",\"end_date\":\"2018-09-23\",\"station\":\"test\"," +
+				"\"tracks\":[{\"artist\":\"artist\",\"title\":\"title\"}]}",
 		},
 	}
 
 	for _, test := range tests {
-		jsonStr, _ := json.Marshal(test.metaInfo)
+		jsonStr, _ := json.Marshal(test.tracks)
 		if string(jsonStr) != test.expectedJSONStr {
-			t.Errorf("json.Marshal(%v): got: `%s`, expected: `%s`",
-				test.metaInfo, jsonStr, test.expectedJSONStr)
+			t.Errorf("json.Marshal(%v): got: \n`%s`, expected: \n`%s`",
+				test, jsonStr, test.expectedJSONStr)
+		}
+	}
+}
+
+func TestCountedTracks_MarshalJSON(t *testing.T) {
+	var tests = []struct {
+		tracks          *CountedTracks
+		expectedJSONStr string
+	}{
+		{
+			&CountedTracks{
+				"test",
+				dayStart,
+				dayEnd,
+				[]CountedTrack{{1, Track{"artist", "title"}}},
+			},
+			"{\"date\":\"2018-09-19\",\"station\":\"test\"," +
+				"\"tracks\":[{\"times_played\":1,\"track\":{\"artist\":\"artist\"," +
+				"\"title\":\"title\"}}]}",
+		},
+		{
+			&CountedTracks{
+				"test",
+				weekStart,
+				weekEnd,
+				[]CountedTrack{{1, Track{"artist", "title"}}},
+			},
+			"{\"start_date\":\"2018-09-17\",\"end_date\":\"2018-09-23\",\"station\":\"test\"," +
+				"\"tracks\":[{\"times_played\":1,\"track\":{\"artist\":\"artist\"," +
+				"\"title\":\"title\"}}]}",
+		},
+	}
+
+	for _, test := range tests {
+		jsonStr, _ := json.Marshal(test.tracks)
+		if string(jsonStr) != test.expectedJSONStr {
+			t.Errorf("json.Marshal(%v): got: \n`%s`, expected: \n`%s`",
+				test, jsonStr, test.expectedJSONStr)
+		}
+	}
+}
+
+func TestMatchedTracks_MarshalJSON(t *testing.T) {
+	var tests = []struct {
+		tracks          *MatchedTracks
+		expectedJSONStr string
+	}{
+		{
+			&MatchedTracks{
+				dayStart,
+				dayEnd,
+				[]MatchedTrack{{map[string]int{"test": 1}, Track{"artist", "title"}}},
+			},
+			"{\"date\":\"2018-09-19\"," +
+				"\"tracks\":[{\"plays_by_station\":{\"test\":1},\"track\":{\"artist\":\"artist\"," +
+				"\"title\":\"title\"}}]}",
+		},
+		{
+			&MatchedTracks{
+				weekStart,
+				weekEnd,
+				[]MatchedTrack{{map[string]int{"test": 1}, Track{"artist", "title"}}},
+			},
+			"{\"start_date\":\"2018-09-17\",\"end_date\":\"2018-09-23\"," +
+				"\"tracks\":[{\"plays_by_station\":{\"test\":1},\"track\":{\"artist\":\"artist\"," +
+				"\"title\":\"title\"}}]}",
+		},
+	}
+
+	for _, test := range tests {
+		jsonStr, _ := json.Marshal(test.tracks)
+		if string(jsonStr) != test.expectedJSONStr {
+			t.Errorf("json.Marshal(%v): got: \n`%s`, expected: \n`%s`",
+				test, jsonStr, test.expectedJSONStr)
 		}
 	}
 }

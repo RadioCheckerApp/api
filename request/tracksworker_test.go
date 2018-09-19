@@ -139,10 +139,9 @@ func (dao MockTrackRecordDAOLimitTracks) CreateTrackRecord(trackRecord model.Tra
 }
 
 var countedTracks = model.CountedTracks{
-	model.MetaInfo{
-		time.Now(), // to be defined in the specific tests
-		time.Now(), // to be defined in the specific tests
-	},
+	"test",     // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
 	[]model.CountedTrack{
 		{3, model.Track{"RHCP", "Californication"}},
 		{2, model.Track{"Jonas Blue, Jack & Jack", "Rise"}},
@@ -151,10 +150,9 @@ var countedTracks = model.CountedTracks{
 }
 
 var tracks = model.Tracks{
-	model.MetaInfo{
-		time.Now(), // to be defined in the specific tests
-		time.Now(), // to be defined in the specific tests
-	},
+	"test",     // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
 	[]model.Track{
 		{"RHCP", "Californication"},
 		{"Jonas Blue, Jack & Jack", "Rise"},
@@ -192,6 +190,7 @@ func TestTracksWorker_TopTracks(t *testing.T) {
 	startDate := time.Now()
 	endDate := startDate.AddDate(0, 0, 1)
 
+	countedTracks.Station = "station-A"
 	countedTracks.StartDate = startDate
 	countedTracks.EndDate = endDate
 
@@ -214,7 +213,9 @@ func TestTracksWorker_TopTracks(t *testing.T) {
 			startDate,
 			endDate,
 			model.CountedTracks{
-				model.MetaInfo{startDate, endDate},
+				"notracksstation",
+				startDate,
+				endDate,
 				[]model.CountedTrack{},
 			},
 			false,
@@ -265,10 +266,9 @@ func TestTracksWorker_TopTracks(t *testing.T) {
 }
 
 var countedTracksWithMoreThanTopThree = model.CountedTracks{
-	model.MetaInfo{
-		time.Now(), // to be defined in the specific tests
-		time.Now(), // to be defined in the specific tests
-	},
+	"test",     // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
 	[]model.CountedTrack{
 		{5, model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
 		{3, model.Track{"RHCP", "Dani California"}},
@@ -277,10 +277,9 @@ var countedTracksWithMoreThanTopThree = model.CountedTracks{
 }
 
 var countedTracksWithMoreThanTopThreeAndDuplicatedCounters = model.CountedTracks{
-	model.MetaInfo{
-		time.Now(), // to be defined in the specific tests
-		time.Now(), // to be defined in the specific tests
-	},
+	"test",     // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
 	[]model.CountedTrack{
 		{5, model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
 		{5, model.Track{"RHCP", "Dani California"}},
@@ -291,10 +290,9 @@ var countedTracksWithMoreThanTopThreeAndDuplicatedCounters = model.CountedTracks
 }
 
 var countedTracksWithDuplicatedCountersOnly = model.CountedTracks{
-	model.MetaInfo{
-		time.Now(), // to be defined in the specific tests
-		time.Now(), // to be defined in the specific tests
-	},
+	"test",     // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
 	[]model.CountedTrack{
 		{1, model.Track{"RHCP", "The Adventures Of Rain Dance Maggie"}},
 		{1, model.Track{"RHCP", "Dani California"}},
@@ -409,7 +407,9 @@ func TestTracksWorker_AllTracks(t *testing.T) {
 			startDate,
 			endDate,
 			model.Tracks{
-				model.MetaInfo{startDate, endDate},
+				"notracksstation",
+				startDate,
+				endDate,
 				[]model.Track{},
 			},
 			false,

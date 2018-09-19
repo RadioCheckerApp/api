@@ -39,10 +39,8 @@ func TestNewSearchWorker(t *testing.T) {
 }
 
 var matchedTracks0 = model.MatchedTracks{
-	model.MetaInfo{
-		time.Now(), // to be defined in the specific tests
-		time.Now(), // to be defined in the specific tests
-	},
+	time.Now(), // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
 	[]model.MatchedTrack{
 		{
 			map[string]int{"station-a": 3, "station-b": 1},
@@ -52,10 +50,8 @@ var matchedTracks0 = model.MatchedTracks{
 }
 
 var matchedTracks1 = model.MatchedTracks{
-	model.MetaInfo{
-		time.Now(), // to be defined in the specific tests
-		time.Now(), // to be defined in the specific tests
-	},
+	time.Now(), // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
 	[]model.MatchedTrack{
 		{
 			map[string]int{"station-a": 3, "station-b": 1},
@@ -69,10 +65,8 @@ var matchedTracks1 = model.MatchedTracks{
 }
 
 var matchedTracks2 = model.MatchedTracks{
-	model.MetaInfo{
-		time.Now(), // to be defined in the specific tests
-		time.Now(), // to be defined in the specific tests
-	},
+	time.Now(), // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
 	[]model.MatchedTrack{
 		{
 			map[string]int{"station-a": 3, "station-b": 1, "station-c": 0},
@@ -90,10 +84,8 @@ var matchedTracks2 = model.MatchedTracks{
 }
 
 var matchedTracks3 = model.MatchedTracks{
-	model.MetaInfo{
-		time.Now(), // to be defined in the specific tests
-		time.Now(), // to be defined in the specific tests
-	},
+	time.Now(), // to be defined in the specific tests
+	time.Now(), // to be defined in the specific tests
 	[]model.MatchedTrack{
 		{
 			map[string]int{"station-b": 1},
@@ -158,7 +150,8 @@ func TestSearchWorker_Search(t *testing.T) {
 			startDate,
 			endDate,
 			model.MatchedTracks{
-				model.MetaInfo{startDate, endDate},
+				startDate,
+				endDate,
 				[]model.MatchedTrack{},
 			},
 			false,
@@ -168,7 +161,8 @@ func TestSearchWorker_Search(t *testing.T) {
 			endDate,
 			startDate,
 			model.MatchedTracks{
-				model.MetaInfo{startDate, endDate},
+				startDate,
+				endDate,
 				[]model.MatchedTrack{},
 			},
 			true,

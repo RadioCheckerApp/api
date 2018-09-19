@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const dateFormat = "2006-01-02"
+
 type Track struct {
 	Artist string `json:"artist"`
 	Title  string `json:"title"`
@@ -72,50 +74,96 @@ type MatchedTrack struct {
 }
 
 type Tracks struct {
-	MetaInfo
-	Tracks []Track `json:"tracks"`
+	Station   string    `json:"station"`
+	StartDate time.Time `json:"omit"`
+	EndDate   time.Time `json:"omit"`
+	Tracks    []Track   `json:"tracks"`
 }
 
 type CountedTracks struct {
-	MetaInfo
+	Station       string         `json:"station"`
+	StartDate     time.Time      `json:"omit"`
+	EndDate       time.Time      `json:"omit"`
 	CountedTracks []CountedTrack `json:"tracks"`
 }
 
 type MatchedTracks struct {
-	MetaInfo
+	StartDate     time.Time      `json:"omit"`
+	EndDate       time.Time      `json:"omit"`
 	MatchedTracks []MatchedTrack `json:"tracks"`
 }
 
-type MetaInfo struct {
-	StartDate time.Time
-	EndDate   time.Time
-}
-
-func (m MetaInfo) MarshalJSON() ([]byte, error) {
-	dateFormat := "02.01.2006"
-	equalDay := m.StartDate.Day() == m.EndDate.Day() &&
-		m.StartDate.Month() == m.EndDate.Month() &&
-		m.StartDate.Year() == m.EndDate.Year()
-	if equalDay {
-		return marshalSingleDayInterval(m, dateFormat)
+func (tracks Tracks) MarshalJSON() ([]byte, error) {
+	type Alias Tracks
+	if equalDate(tracks.StartDate, tracks.EndDate) {
+		return json.Marshal(&struct {
+			Date string `json:"date"`
+			Alias
+		}{
+			Date:  tracks.StartDate.Format(dateFormat),
+			Alias: (Alias)(tracks),
+		})
 	}
-	return marshalMultiDayInterval(m, dateFormat)
-}
 
-func marshalSingleDayInterval(m MetaInfo, dateFormat string) ([]byte, error) {
-	return json.Marshal(&struct {
-		Date string `json:"date"`
-	}{
-		Date: m.StartDate.Format(dateFormat),
-	})
-}
-
-func marshalMultiDayInterval(m MetaInfo, dateFormat string) ([]byte, error) {
 	return json.Marshal(&struct {
 		StartDate string `json:"start_date"`
 		EndDate   string `json:"end_date"`
+		Alias
 	}{
-		StartDate: m.StartDate.Format(dateFormat),
-		EndDate:   m.EndDate.Format(dateFormat),
+		StartDate: tracks.StartDate.Format(dateFormat),
+		EndDate:   tracks.EndDate.Format(dateFormat),
+		Alias:     (Alias)(tracks),
 	})
+}
+
+func (tracks CountedTracks) MarshalJSON() ([]byte, error) {
+	type Alias CountedTracks
+	if equalDate(tracks.StartDate, tracks.EndDate) {
+		return json.Marshal(&struct {
+			Date string `json:"date"`
+			Alias
+		}{
+			Date:  tracks.StartDate.Format(dateFormat),
+			Alias: (Alias)(tracks),
+		})
+	}
+
+	return json.Marshal(&struct {
+		StartDate string `json:"start_date"`
+		EndDate   string `json:"end_date"`
+		Alias
+	}{
+		StartDate: tracks.StartDate.Format(dateFormat),
+		EndDate:   tracks.EndDate.Format(dateFormat),
+		Alias:     (Alias)(tracks),
+	})
+}
+
+func (tracks MatchedTracks) MarshalJSON() ([]byte, error) {
+	type Alias MatchedTracks
+	if equalDate(tracks.StartDate, tracks.EndDate) {
+		return json.Marshal(&struct {
+			Date string `json:"date"`
+			Alias
+		}{
+			Date:  tracks.StartDate.Format(dateFormat),
+			Alias: (Alias)(tracks),
+		})
+	}
+
+	return json.Marshal(&struct {
+		StartDate string `json:"start_date"`
+		EndDate   string `json:"end_date"`
+		Alias
+	}{
+		StartDate: tracks.StartDate.Format(dateFormat),
+		EndDate:   tracks.EndDate.Format(dateFormat),
+		Alias:     (Alias)(tracks),
+	})
+}
+
+func equalDate(d1, d2 time.Time) bool {
+	return d1.Day() == d2.Day() &&
+		d1.Month() == d2.Month() &&
+		d1.Year() == d2.Year()
 }

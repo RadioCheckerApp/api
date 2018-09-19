@@ -37,7 +37,8 @@ func (worker SearchWorker) Search(startDate, endDate time.Time) (model.MatchedTr
 	matchedTrackRecords := worker.findMatchingTrackRecords(trackRecords)
 	if len(matchedTrackRecords) == 0 {
 		return model.MatchedTracks{
-			model.MetaInfo{startDate, endDate},
+			startDate,
+			endDate,
 			[]model.MatchedTrack{},
 		}, nil
 	}
@@ -54,7 +55,8 @@ func (worker SearchWorker) Search(startDate, endDate time.Time) (model.MatchedTr
 	}
 
 	return model.MatchedTracks{
-		model.MetaInfo{startDate, endDate},
+		startDate,
+		endDate,
 		buildResultStructure(groupedTracks),
 	}, nil
 }
