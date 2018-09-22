@@ -13,3 +13,4 @@ build:
 	env GOOS=linux go build ${LDFLAGS} -o ../bin/api-aws/tracks tracks/main.go
 	env GOOS=linux go build ${LDFLAGS} -o ../bin/api-aws/search search/main.go
 	env GOOS=linux go build ${LDFLAGS} -o ../bin/api-aws/tracks-create tracks-create/main.go
+	env GOOS=linux go build ${LDFLAGS} -o ../bin/api-aws/tracks-create-authorizer tracks-create-authorizer/main.go

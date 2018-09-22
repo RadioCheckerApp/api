@@ -4,6 +4,12 @@ custom:
   StationsDDBTableName: 'stations-table-${self:provider.stage}'
   TrackRecordsDDBTableName: 'trackrecords-table-${self:provider.stage}'
   TrackRecordsDDBGSITypeAirtime: 'trackrecords-table-${self:provider.stage}-gsi-type-airtime'
+  authorizer:
+    tracks-create:
+      name: tracks-create-authorizer
+      type: TOKEN
+      identitySource: method.request.header.Authorization
+      identityValidationExpression: Bearer ${env:TRACKS_CREATE_AUTH_TOKEN}
 
 provider:
   name: aws
@@ -100,7 +106,11 @@ functions:
       - http:
           path: stations/{station}/tracks/{timestamp}
           method: put
-          private: true
+          authorizer: ${self:custom.authorizer.tracks-create}
+  tracks-create-authorizer:
+    handler: bin/api-aws/tracks-create-authorizer
+    environment:
+      TRACKS_CREATE_AUTH_TOKEN: ${env:TRACKS_CREATE_AUTH_TOKEN}
 
 resources:
   Resources:
