@@ -73,7 +73,8 @@ func buildWildcardResourceArn(resourceArn string) string {
 	// arn:aws:execute-api:eu-central-1:001975686909:pul5mro035/dev/PUT/stations/hitradio-oe3/tracks/1537701181
 	split := strings.Split(resourceArn, "/")
 	if len(split) != 7 {
-		log.Printf("ERROR: Unable to split ARN `%s`", resourceArn)
+		log.Printf("ERROR: Unable to split ARN `%s`. Not adding any wildcards.", resourceArn)
+		return resourceArn
 	}
 	split[4] = "*"
 	split[6] = "*"
