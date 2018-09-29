@@ -24,6 +24,6 @@ deploy:
   # deploy to production if commit is tagged
   skip_cleanup: true
   provider: script
-  script: bash ./deploy.sh
+  script: bash ./deploy.sh production
   on:
     tags: true
