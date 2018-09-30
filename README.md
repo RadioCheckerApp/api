@@ -1,3 +1,5 @@
+<img src="http://radiochecker.com/misc/banner.png" alt="banner"/>
+
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 [![Build Status](https://travis-ci.org/RadioCheckerApp/api.svg?branch=master)](https://travis-ci.org/RadioCheckerApp/api)
 
